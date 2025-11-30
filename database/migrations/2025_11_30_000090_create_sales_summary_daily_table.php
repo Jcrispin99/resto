@@ -30,7 +30,7 @@ return new class extends Migration
 
             // Unique constraint
             $table->unique(['branch_id', 'summary_date'], 'sales_daily_unique');
-            
+
             // Indexes
             $table->index('branch_id');
             $table->index('summary_date');

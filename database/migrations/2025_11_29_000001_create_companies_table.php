@@ -13,12 +13,9 @@ return new class extends Migration
     {
         Schema::create('companies', function (Blueprint $table) {
             $table->id();
-            $table->string('business_name', 200);
-            $table->string('trade_name', 200);
+            $table->string('business_name', 200)->comment('Razón social');
+            $table->string('trade_name', 200)->comment('Nombre comercial');
             $table->string('tax_id', 20)->unique()->comment('RUC');
-            $table->string('email', 150);
-            $table->string('phone', 20);
-            $table->string('website', 255)->nullable();
             $table->string('logo', 255)->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();

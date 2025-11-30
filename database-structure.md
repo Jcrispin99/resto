@@ -16,14 +16,11 @@
 ## 2. Gestión de Sucursales
 
 ### `companies`
-Empresas (multi-tenant)
+Empresas (solo datos fiscales/corporativos)
 - `id` - BIGINT PRIMARY KEY
-- `business_name` - VARCHAR(200)
-- `trade_name` - VARCHAR(200)
+- `business_name` - VARCHAR(200) (Razón social)
+- `trade_name` - VARCHAR(200) (Nombre comercial)
 - `tax_id` - VARCHAR(20) UNIQUE (RUC)
-- `email` - VARCHAR(150)
-- `phone` - VARCHAR(20)
-- `website` - VARCHAR(255)
 - `logo` - VARCHAR(255)
 - `is_active` - BOOLEAN DEFAULT true
 - `created_at` - TIMESTAMP
@@ -35,16 +32,16 @@ Sucursales/Locales
 - `company_id` - BIGINT FK -> companies
 - `code` - VARCHAR(10) UNIQUE
 - `name` - VARCHAR(150)
+- `business_name` - VARCHAR(200) NULL (Razón social si factura independiente)
+- `tax_id` - VARCHAR(11) NULL (RUC si factura independiente)
 - `address` - VARCHAR(255)
-- `district` - VARCHAR(100)
-- `city` - VARCHAR(100)
-- `state` - VARCHAR(100)
-- `country` - VARCHAR(100)
-- `postal_code` - VARCHAR(10)
+- `ubigeo_code` - VARCHAR(6) NULL (Código ubigeo: departamento-provincia-distrito)
+- `country` - VARCHAR(3) DEFAULT 'PE'
 - `latitude` - DECIMAL(10,8)
 - `longitude` - DECIMAL(11,8)
 - `phone` - VARCHAR(20)
 - `email` - VARCHAR(150)
+- `website` - VARCHAR(255)
 - `manager_id` - BIGINT FK -> users
 - `opening_time` - TIME
 - `closing_time` - TIME
@@ -53,6 +50,7 @@ Sucursales/Locales
 - `is_active` - BOOLEAN DEFAULT true
 - `created_at` - TIMESTAMP
 - `updated_at` - TIMESTAMP
+- `deleted_at` - TIMESTAMP NULL
 
 ### `branch_settings`
 Configuraciones específicas por sucursal
@@ -576,15 +574,15 @@ Métodos de pago
 - `updated_at` - TIMESTAMP
 
 ### `taxes`
-Impuestos configurables
+Impuestos configurables (SUNAT)
 - `id` - BIGINT PRIMARY KEY
-- `code` - VARCHAR(20) UNIQUE (IGV, ICBPER, ISC, etc.)
-- `name` - VARCHAR(100)
+- `name` - VARCHAR(255) UNIQUE
 - `description` - TEXT
-- `tax_type` - ENUM('percentage', 'fixed', 'per_unit')
-- `rate` - DECIMAL(10,4) (18.00 para IGV, 0.30 para ICBPER)
-- `is_included_in_price` - BOOLEAN DEFAULT false
-- `applies_to` - ENUM('all', 'products', 'services')
+- `invoice_label` - VARCHAR(255) (Texto en boleta/factura)
+- `tax_type` - VARCHAR(255) (IGV, ISC, ICBPER, RETENCION, PERCEPCION, etc.)
+- `affectation_type_code` - VARCHAR(2) NULL (Catálogo 07 SUNAT: 10=Gravado, 20=Exonerado, 30=Inafecto)
+- `rate_percent` - DECIMAL(5,2) DEFAULT 0 (18.00 para IGV, 0.40 para ICBPER)
+- `is_price_inclusive` - BOOLEAN DEFAULT false
 - `is_default` - BOOLEAN DEFAULT false
 - `is_active` - BOOLEAN DEFAULT true
 - `created_at` - TIMESTAMP

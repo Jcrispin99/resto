@@ -13,22 +13,24 @@ return new class extends Migration
     {
         Schema::create('taxes', function (Blueprint $table) {
             $table->id();
-            $table->string('code', 20)->unique()->comment('IGV, ICBPER, ISC, etc.');
-            $table->string('name', 100);
+            $table->string('name')->unique();
             $table->text('description')->nullable();
-            $table->enum('tax_type', ['percentage', 'fixed', 'per_unit'])->default('percentage');
-            $table->decimal('rate', 10, 4)->comment('18.00 for IGV, 0.30 for ICBPER');
-            $table->boolean('is_included_in_price')->default(false);
-            $table->enum('applies_to', ['all', 'products', 'services'])->default('all');
-            $table->boolean('is_default')->default(false);
+            $table->string('invoice_label')->nullable()->comment('Label shown on invoice');
+            $table->string('tax_type')->comment('IGV, ISC, ICBPER, RETENCION, PERCEPCION, etc.');
+            $table->string('affectation_type_code', 2)->nullable()->comment('SUNAT Catalog 07');
+            $table->decimal('rate_percent', 5, 2)->default(0)->comment('18.00 for IGV, 0.30 for ICBPER');
+            $table->boolean('is_price_inclusive')->default(false)->comment('Tax included in price');
             $table->boolean('is_active')->default(true);
+            $table->boolean('is_default')->default(false);
             $table->timestamps();
 
-            // Indexes
-            $table->index('code');
+            // Indexes for frequent queries
             $table->index('tax_type');
-            $table->index('is_default');
+            $table->index('affectation_type_code');
             $table->index('is_active');
+            $table->index('is_default');
+            $table->index('rate_percent');
+            $table->index(['rate_percent', 'is_price_inclusive']);
         });
     }
 
