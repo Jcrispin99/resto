@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Branch;
-use App\Models\BranchSetting;
 use App\Models\Company;
 use Illuminate\Database\Seeder;
 
@@ -23,8 +22,8 @@ class BranchManagementSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        // Create main branch (Casa Matriz)
-        $mainBranch = Branch::create([
+        // Create main branch (Casa Matriz) with all settings
+        Branch::create([
             'company_id' => $company->id,
             'code' => 'M001',
             'name' => 'Casa Matriz - Miraflores',
@@ -38,17 +37,13 @@ class BranchManagementSeeder extends Seeder
             'phone' => '+51 1 4441234',
             'email' => 'miraflores@restoperu.pe',
             'website' => 'https://restoperu.pe',
-            'manager_id' => null, // Se asignará después de crear usuarios
+            'manager_id' => null,
             'opening_time' => '12:00:00',
             'closing_time' => '23:00:00',
             'max_tables' => 25,
             'max_capacity' => 100,
             'is_active' => true,
-        ]);
-
-        // Create branch settings for main branch
-        BranchSetting::create([
-            'branch_id' => $mainBranch->id,
+            // Settings
             'currency' => 'PEN',
             'timezone' => 'America/Lima',
             'tax_percentage' => 18.00,
@@ -65,8 +60,8 @@ class BranchManagementSeeder extends Seeder
             ],
         ]);
 
-        // Create second branch
-        $secondBranch = Branch::create([
+        // Create second branch with different settings
+        Branch::create([
             'company_id' => $company->id,
             'code' => 'S002',
             'name' => 'Sucursal San Isidro',
@@ -86,11 +81,7 @@ class BranchManagementSeeder extends Seeder
             'max_tables' => 30,
             'max_capacity' => 120,
             'is_active' => true,
-        ]);
-
-        // Create branch settings for second branch
-        BranchSetting::create([
-            'branch_id' => $secondBranch->id,
+            // Settings
             'currency' => 'PEN',
             'timezone' => 'America/Lima',
             'tax_percentage' => 18.00,
@@ -107,6 +98,6 @@ class BranchManagementSeeder extends Seeder
             ],
         ]);
 
-        $this->command->info('✅ Created company with 2 branches and their settings');
+        $this->command->info('✅ Created company with 2 branches (unified model)');
     }
 }

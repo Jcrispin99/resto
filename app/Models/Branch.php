@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Branch extends Model
@@ -33,18 +32,36 @@ class Branch extends Model
         'max_tables',
         'max_capacity',
         'is_active',
+        // Settings fields (previously in branch_settings table)
+        'currency',
+        'timezone',
+        'tax_percentage',
+        'print_kitchen_ticket',
+        'print_customer_receipt',
+        'accept_reservations',
+        'accept_delivery',
+        'accept_takeout',
+        'config_json',
     ];
 
     protected $casts = [
         'latitude' => 'decimal:8',
         'longitude' => 'decimal:8',
         'is_active' => 'boolean',
+        // Settings casts
+        'tax_percentage' => 'decimal:2',
+        'print_kitchen_ticket' => 'boolean',
+        'print_customer_receipt' => 'boolean',
+        'accept_reservations' => 'boolean',
+        'accept_delivery' => 'boolean',
+        'accept_takeout' => 'boolean',
+        'config_json' => 'array',
     ];
 
     /**
      * Ubigeo data (will be fetched from API).
      * You can implement this as an accessor or use a service to fetch from your API.
-     * 
+     *
      * Example structure from API:
      * [
      *   'department' => 'Lima',
@@ -57,13 +74,13 @@ class Branch extends Model
 
     public function getUbigeoAttribute(): ?array
     {
-        if (!$this->ubigeo_code) {
+        if (! $this->ubigeo_code) {
             return null;
         }
 
         // TODO: Implement your API call here
         // Example: return app(UbigeoService::class)->getByCode($this->ubigeo_code);
-        
+
         // For now, return null or cached data
         return cache()->remember("ubigeo.{$this->ubigeo_code}", 3600, function () {
             // Your API call here
@@ -77,14 +94,6 @@ class Branch extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
-    }
-
-    /**
-     * Get the branch settings.
-     */
-    public function settings(): HasOne
-    {
-        return $this->hasOne(BranchSetting::class);
     }
 
     /**
@@ -165,7 +174,7 @@ class Branch extends Model
     public function getFullAddressAttribute(): string
     {
         $ubigeo = $this->ubigeo;
-        
+
         return implode(', ', array_filter([
             $this->address,
             $ubigeo['district'] ?? null,
@@ -197,5 +206,24 @@ class Branch extends Model
     public function getDistrictAttribute(): ?string
     {
         return $this->ubigeo['district'] ?? null;
+    }
+
+    /**
+     * Get a specific config value from config_json.
+     */
+    public function getConfig(string $key, mixed $default = null): mixed
+    {
+        return data_get($this->config_json, $key, $default);
+    }
+
+    /**
+     * Set a specific config value in config_json.
+     */
+    public function setConfig(string $key, mixed $value): void
+    {
+        $config = $this->config_json ?? [];
+        data_set($config, $key, $value);
+        $this->config_json = $config;
+        $this->save();
     }
 }

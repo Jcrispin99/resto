@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             BranchManagementSeeder::class,
+            ProductCategorySeeder::class,
             TaxSeeder::class,
         ]);
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Companies\Tables;
+namespace App\Filament\Resources\ProductCategories\Tables;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -9,20 +9,23 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
-class CompaniesTable
+class ProductCategoriesTable
 {
     public static function configure(Table $table): Table
     {
         return $table
             ->columns([
-                TextColumn::make('business_name')
+                TextColumn::make('parent.name')
                     ->searchable(),
-                TextColumn::make('trade_name')
+                TextColumn::make('name')
                     ->searchable(),
-                TextColumn::make('tax_id')
+                TextColumn::make('icon')
                     ->searchable(),
-                TextColumn::make('logo')
+                TextColumn::make('color')
                     ->searchable(),
+                TextColumn::make('order')
+                    ->numeric()
+                    ->sortable(),
                 IconColumn::make('is_active')
                     ->boolean(),
                 TextColumn::make('created_at')

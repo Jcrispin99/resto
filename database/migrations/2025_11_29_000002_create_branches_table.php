@@ -40,6 +40,18 @@ return new class extends Migration
             $table->integer('max_tables')->default(0);
             $table->integer('max_capacity')->default(0);
             $table->boolean('is_active')->default(true);
+
+            // Settings (previously in branch_settings table)
+            $table->string('currency', 3)->default('PEN');
+            $table->string('timezone', 50)->default('America/Lima');
+            $table->decimal('tax_percentage', 5, 2)->default(18.00);
+            $table->boolean('print_kitchen_ticket')->default(true);
+            $table->boolean('print_customer_receipt')->default(true);
+            $table->boolean('accept_reservations')->default(true);
+            $table->boolean('accept_delivery')->default(true);
+            $table->boolean('accept_takeout')->default(true);
+            $table->json('config_json')->nullable();
+
             $table->timestamps();
             $table->softDeletes();
 
