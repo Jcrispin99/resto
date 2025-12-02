@@ -13,17 +13,17 @@ return new class extends Migration
     {
         Schema::create('recipes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('menu_item_id')->constrained()->onDelete('cascade');
-            $table->foreignId('product_product_id')->constrained('product_product')->onDelete('restrict');
-            $table->decimal('quantity', 10, 3);
-            $table->foreignId('unit_id')->constrained()->onDelete('restrict');
-            $table->decimal('waste_percentage', 5, 2)->default(0);
+            $table->foreignId('product_template_id')->constrained('product_template')->onDelete('cascade')->comment('El plato/producto que se elabora');
+            $table->foreignId('ingredient_id')->constrained('product_product')->onDelete('restrict')->comment('Ingrediente que consume');
+            $table->decimal('quantity', 10, 3)->comment('Cantidad necesaria del ingrediente');
+            $table->foreignId('unit_id')->constrained('units')->onDelete('restrict');
+            $table->decimal('waste_percentage', 5, 2)->default(0)->comment('% de merma esperada');
             $table->text('notes')->nullable();
             $table->timestamps();
 
             // Indexes
-            $table->index('menu_item_id');
-            $table->index('product_product_id');
+            $table->index('product_template_id');
+            $table->index('ingredient_id');
         });
     }
 

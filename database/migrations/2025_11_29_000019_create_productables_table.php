@@ -13,21 +13,18 @@ return new class extends Migration
     {
         Schema::create('productables', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_product_id')->constrained('product_product')->onDelete('cascade');
-            $table->unsignedBigInteger('productable_id');
-            $table->string('productable_type', 50);
+            $table->foreignId('product_id')->constrained('product_product')->onDelete('cascade');
+            $table->morphs('productable'); // Crea productable_id + productable_type
             $table->decimal('quantity', 10, 3);
-            $table->decimal('unit_price', 10, 2)->nullable();
-            $table->decimal('discount', 10, 2)->default(0);
-            $table->decimal('tax_percentage', 5, 2)->nullable();
-            $table->decimal('subtotal', 10, 2)->nullable();
-            $table->decimal('total', 10, 2)->nullable();
-            $table->json('metadata')->nullable();
+            $table->decimal('price', 10, 2)->comment('Precio unitario usado');
+            $table->decimal('discount', 10, 2)->default(0)->comment('Descuento aplicado');
+            $table->decimal('tax_rate', 8, 2)->default(18.00)->comment('% IGV aplicado');
+            $table->decimal('subtotal', 10, 2)->comment('quantity * price - discount');
+            $table->decimal('total', 10, 2)->comment('subtotal + impuestos');
             $table->timestamps();
 
             // Indexes
-            $table->index(['productable_id', 'productable_type']);
-            $table->index('product_product_id');
+            $table->index('product_id');
         });
     }
 

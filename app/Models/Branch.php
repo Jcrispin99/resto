@@ -20,6 +20,7 @@ class Branch extends Model
         'tax_id',
         'address',
         'ubigeo_code',
+        'kitchen_printer_ip',
         'country',
         'latitude',
         'longitude',

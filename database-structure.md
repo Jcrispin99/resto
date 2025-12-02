@@ -78,21 +78,16 @@ Almacenes
 - `branch_id` - BIGINT FK -> branches
 - `code` - VARCHAR(20) UNIQUE
 - `name` - VARCHAR(100)
-- `type` - ENUM('main', 'kitchen', 'bar', 'storage')
-- `responsible_user_id` - BIGINT FK -> users
 - `is_active` - BOOLEAN DEFAULT true
 - `created_at` - TIMESTAMP
 - `updated_at` - TIMESTAMP
 
 ### `product_categories`
-Categorías de productos
+Categorías de productos (jerárquico)
 - `id` - BIGINT PRIMARY KEY
 - `parent_id` - BIGINT FK -> product_categories NULL
 - `name` - VARCHAR(100)
-- `description` - TEXT
-- `icon` - VARCHAR(100)
-- `color` - VARCHAR(7)
-- `order` - INT DEFAULT 0
+- `full_name` - VARCHAR(500) NULL (Auto-calculado: "Padre / Hijo")
 - `is_active` - BOOLEAN DEFAULT true
 - `created_at` - TIMESTAMP
 - `updated_at` - TIMESTAMP
@@ -100,83 +95,70 @@ Categorías de productos
 ### `units`
 Unidades de medida
 - `id` - BIGINT PRIMARY KEY
-- `code` - VARCHAR(10) UNIQUE
 - `name` - VARCHAR(50)
 - `abbreviation` - VARCHAR(10)
-- `type` - ENUM('weight', 'volume', 'unit', 'length')
+- `created_at` - TIMESTAMP
+- `updated_at` - TIMESTAMP
+
+### `product_attributes`
+Atributos de productos (Talla, Color, Material, etc.)
+- `id` - BIGINT PRIMARY KEY
+- `name` - VARCHAR(50)
+- `created_at` - TIMESTAMP
+- `updated_at` - TIMESTAMP
+
+### `product_attribute_values`
+Valores de atributos (S, M, L, XL, Rojo, Azul, etc.)
+- `id` - BIGINT PRIMARY KEY
+- `attribute_id` - BIGINT FK -> product_attributes
+- `value` - VARCHAR(100)
 - `created_at` - TIMESTAMP
 - `updated_at` - TIMESTAMP
 
 ### `product_template`
 Plantilla de producto (información general)
 - `id` - BIGINT PRIMARY KEY
-- `name` - VARCHAR(200)
-- `description` - TEXT
 - `category_id` - BIGINT FK -> product_categories
 - `unit_id` - BIGINT FK -> units
-- `type` - ENUM('ingredient', 'consumable', 'finished_product', 'service')
-- `is_stockable` - BOOLEAN DEFAULT true
-- `is_perishable` - BOOLEAN DEFAULT false
-- `shelf_life_days` - INT NULL
-- `min_stock` - DECIMAL(10,3) DEFAULT 0
-- `max_stock` - DECIMAL(10,3) NULL
-- `reorder_point` - DECIMAL(10,3) NULL
-- `default_cost_price` - DECIMAL(10,2) DEFAULT 0
-- `default_sale_price` - DECIMAL(10,2) DEFAULT 0
-- `tax_percentage` - DECIMAL(5,2)
-- `image` - VARCHAR(255)
-- `has_variants` - BOOLEAN DEFAULT false
+- `name` - VARCHAR(200)
+- `description` - TEXT
+- `internal_reference` - VARCHAR(50) NULL
+- `barcode` - VARCHAR(100) NULL
+- `product_type` - ENUM('consumable', 'storable', 'service')
+- `can_be_sold` - BOOLEAN DEFAULT true
+- `can_be_purchased` - BOOLEAN DEFAULT true
+- `can_be_stocked` - BOOLEAN DEFAULT true
+- `sale_price` - DECIMAL(10,2) DEFAULT 0
+- `cost_price` - DECIMAL(10,2) DEFAULT 0
 - `is_active` - BOOLEAN DEFAULT true
 - `created_at` - TIMESTAMP
 - `updated_at` - TIMESTAMP
 - `deleted_at` - TIMESTAMP NULL
 
-### `product_template_attributes`
-Atributos configurables para plantilla (define qué atributos puede tener)
-- `product_template_id` - BIGINT FK -> product_template
-- `attribute_id` - BIGINT FK -> product_attributes
-- PRIMARY KEY (product_template_id, attribute_id)
-
-### `product_attributes`
-Atributos de productos (color, tamaño, peso, etc.)
-- `id` - BIGINT PRIMARY KEY
-- `name` - VARCHAR(50)
-- `display_name` - VARCHAR(100)
-- `type` - ENUM('select', 'color', 'text', 'number')
-- `created_at` - TIMESTAMP
-- `updated_at` - TIMESTAMP
-
-### `product_attribute_values`
-Valores de atributos
-- `id` - BIGINT PRIMARY KEY
-- `attribute_id` - BIGINT FK -> product_attributes
-- `value` - VARCHAR(100)
-- `display_value` - VARCHAR(100)
-- `color_code` - VARCHAR(7) NULL
-- `order` - INT DEFAULT 0
-- `created_at` - TIMESTAMP
-- `updated_at` - TIMESTAMP
-
 ### `product_product`
 Variantes específicas de productos (cada combinación de atributos)
 - `id` - BIGINT PRIMARY KEY
-- `product_template_id` - BIGINT FK -> product_template
+- `template_id` - BIGINT FK -> product_template
+- `name` - VARCHAR(200) NULL
 - `sku` - VARCHAR(50) UNIQUE
 - `barcode` - VARCHAR(100) UNIQUE NULL
-- `variant_name` - VARCHAR(200) NULL (ej: "Rojo - Grande")
-- `cost_price` - DECIMAL(10,2) NULL (si NULL, usa default_cost_price del template)
-- `sale_price` - DECIMAL(10,2) NULL (si NULL, usa default_sale_price del template)
-- `image` - VARCHAR(255) NULL
+- `sale_price` - DECIMAL(10,2) NULL
+- `cost_price` - DECIMAL(10,2) NULL
+- `weight` - DECIMAL(10,2) NULL
+- `volume` - DECIMAL(10,2) NULL
 - `is_active` - BOOLEAN DEFAULT true
-- `is_default_variant` - BOOLEAN DEFAULT false
 - `created_at` - TIMESTAMP
 - `updated_at` - TIMESTAMP
+- `deleted_at` - TIMESTAMP NULL
 
-### `product_product_attributes`
-Valores de atributos específicos de cada variante
-- `product_product_id` - BIGINT FK -> product_product
+### `attribute_value_product`
+Pivot: Valores de atributos de cada variante (Variante "Polo" = Talla:M + Color:Rojo)
+- `id` - BIGINT PRIMARY KEY
 - `attribute_value_id` - BIGINT FK -> product_attribute_values
-- PRIMARY KEY (product_product_id, attribute_value_id)
+- `product_id` - BIGINT FK -> product_product
+- `created_at` - TIMESTAMP
+- `updated_at` - TIMESTAMP
+- UNIQUE (attribute_value_id, product_id)
 
 ---
 

@@ -14,16 +14,32 @@ return new class extends Migration
         Schema::create('purchase_orders', function (Blueprint $table) {
             $table->id();
             $table->string('order_number', 20)->unique();
-            $table->foreignId('branch_id')->constrained()->onDelete('cascade');
-            $table->foreignId('warehouse_id')->constrained()->onDelete('cascade');
-            $table->foreignId('partner_id')->constrained()->onDelete('restrict')->comment('Supplier');
+            $table->foreignId('branch_id')->constrained('branches')->onDelete('cascade');
+            $table->foreignId('warehouse_id')->constrained('warehouses')->onDelete('cascade');
+            $table->foreignId('partner_id')->constrained('partners')->onDelete('restrict')->comment('Supplier');
+
+            // Dates
             $table->date('order_date');
             $table->date('expected_delivery_date')->nullable();
             $table->date('received_date')->nullable();
-            $table->enum('status', ['draft', 'pending', 'approved', 'received', 'cancelled'])->default('draft');
+            $table->date('paid_date')->nullable();
+
+            // Status flow: quote_request → quote_received → ordered → approved → received → paid
+            $table->enum('status', [
+                'quote_request',   // Solicitud de cotización
+                'quote_received',  // Cotización recibida
+                'ordered',         // Orden enviada al proveedor
+                'approved',        // Aprobada internamente
+                'received',        // Mercancía recibida
+                'paid',            // Pagado al proveedor
+                'cancelled',
+            ])->default('quote_request');
+
+            // Amounts
             $table->decimal('subtotal', 10, 2);
             $table->decimal('tax', 10, 2);
             $table->decimal('total', 10, 2);
+
             $table->text('notes')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('approved_by')->nullable();

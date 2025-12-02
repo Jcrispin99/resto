@@ -24,6 +24,7 @@ return new class extends Migration
             // Location
             $table->string('address', 255);
             $table->string('ubigeo_code', 6)->nullable()->comment('Código ubigeo (departamento-provincia-distrito)');
+            $table->string('kitchen_printer_ip', 45)->nullable()->comment('IP de la impresora de cocina');
             $table->string('country', 3)->default('PE');
             $table->decimal('latitude', 10, 8)->nullable();
             $table->decimal('longitude', 11, 8)->nullable();

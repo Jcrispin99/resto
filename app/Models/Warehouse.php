@@ -15,8 +15,6 @@ class Warehouse extends Model
         'branch_id',
         'code',
         'name',
-        'type',
-        'responsible_user_id',
         'is_active',
     ];
 
@@ -25,19 +23,11 @@ class Warehouse extends Model
     ];
 
     /**
-     * Get the branch that owns the warehouse.
+     * Get the branch this warehouse belongs to.
      */
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
-    }
-
-    /**
-     * Get the responsible user.
-     */
-    public function responsibleUser(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'responsible_user_id');
     }
 
     /**
@@ -79,18 +69,4 @@ class Warehouse extends Model
     {
         return $query->where('is_active', true);
     }
-
-    /**
-     * Scope for specific type.
-     */
-    public function scopeOfType($query, string $type)
-    {
-        return $query->where('type', $type);
-    }
-
-    // Warehouse types constants
-    const TYPE_MAIN = 'main';
-    const TYPE_KITCHEN = 'kitchen';
-    const TYPE_BAR = 'bar';
-    const TYPE_STORAGE = 'storage';
 }

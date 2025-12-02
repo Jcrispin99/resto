@@ -13,31 +13,28 @@ return new class extends Migration
     {
         Schema::create('product_template', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('category_id')->constrained('product_categories')->onDelete('restrict');
+            $table->foreignId('menu_category_id')->nullable()->constrained('product_categories')->onDelete('set null')->comment('Categoría para mostrar en POS');
+            $table->foreignId('unit_id')->constrained('units')->onDelete('restrict');
             $table->string('name', 200);
             $table->text('description')->nullable();
-            $table->foreignId('category_id')->constrained('product_categories')->onDelete('restrict');
-            $table->foreignId('unit_id')->constrained('units')->onDelete('restrict');
-            $table->enum('type', ['ingredient', 'consumable', 'finished_product', 'service'])->default('ingredient');
-            $table->boolean('is_stockable')->default(true);
-            $table->boolean('is_perishable')->default(false);
-            $table->integer('shelf_life_days')->nullable();
-            $table->decimal('min_stock', 10, 3)->default(0);
-            $table->decimal('max_stock', 10, 3)->nullable();
-            $table->decimal('reorder_point', 10, 3)->nullable();
-            $table->decimal('default_cost_price', 10, 2)->default(0);
-            $table->decimal('default_sale_price', 10, 2)->default(0);
-            $table->decimal('tax_percentage', 5, 2)->default(18.00);
-            $table->string('image', 255)->nullable();
-            $table->boolean('has_variants')->default(false);
+            $table->string('internal_reference', 50)->nullable();
+            $table->string('barcode', 100)->nullable();
+            $table->enum('product_type', ['consumable', 'storable', 'service', 'combo'])->default('storable')->comment('combo = paquete de productos');
+            $table->boolean('can_be_sold')->default(false)->comment('Si true, aparece en POS como producto vendible');
+            $table->boolean('can_be_purchased')->default(true);
+            $table->boolean('can_be_stocked')->default(true);
+            $table->decimal('sale_price', 10, 2)->default(0)->comment('Precio base de venta');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->softDeletes();
 
             // Indexes
             $table->index('category_id');
+            $table->index('menu_category_id');
             $table->index('unit_id');
-            $table->index('type');
-            $table->index('is_stockable');
+            $table->index('product_type');
+            $table->index('can_be_sold');
             $table->index('is_active');
         });
     }

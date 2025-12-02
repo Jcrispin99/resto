@@ -14,16 +14,14 @@ return new class extends Migration
         Schema::create('product_categories', function (Blueprint $table) {
             $table->id();
             $table->foreignId('parent_id')->nullable()->constrained('product_categories')->onDelete('cascade');
-            $table->string('code', 20)->unique();
             $table->string('name', 100);
-            $table->text('description')->nullable();
-            $table->string('image', 255)->nullable();
+            $table->string('full_name', 500)->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 
             // Indexes
             $table->index('parent_id');
-            $table->index('code');
+            $table->index('full_name');
             $table->index('is_active');
         });
     }

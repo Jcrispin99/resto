@@ -16,6 +16,7 @@ class ProductTemplate extends Model
 
     protected $fillable = [
         'category_id',
+        'menu_category_id',
         'unit_id',
         'name',
         'description',
@@ -26,7 +27,6 @@ class ProductTemplate extends Model
         'can_be_purchased',
         'can_be_stocked',
         'sale_price',
-        'cost_price',
         'is_active',
     ];
 
@@ -35,16 +35,23 @@ class ProductTemplate extends Model
         'can_be_purchased' => 'boolean',
         'can_be_stocked' => 'boolean',
         'sale_price' => 'decimal:2',
-        'cost_price' => 'decimal:2',
         'is_active' => 'boolean',
     ];
 
     /**
-     * Get the category.
+     * Get the inventory category.
      */
     public function category(): BelongsTo
     {
         return $this->belongsTo(ProductCategory::class);
+    }
+
+    /**
+     * Get the menu category (for POS display).
+     */
+    public function menuCategory(): BelongsTo
+    {
+        return $this->belongsTo(ProductCategory::class, 'menu_category_id');
     }
 
     /**
@@ -72,16 +79,11 @@ class ProductTemplate extends Model
     }
 
     /**
-     * Get template attributes (configurable attributes).
+     * Get menu settings (1:1).
      */
-    public function templateAttributes(): BelongsToMany
+    public function menuSettings()
     {
-        return $this->belongsToMany(
-            ProductAttribute::class,
-            'product_template_attributes',
-            'template_id',
-            'attribute_id'
-        );
+        return $this->hasOne(ProductMenuSettings::class, 'product_template_id');
     }
 
     /**
@@ -90,6 +92,14 @@ class ProductTemplate extends Model
     public function images(): MorphMany
     {
         return $this->morphMany(Imageable::class, 'imageable');
+    }
+
+    /**
+     * Get recipes (ingredients for this dish).
+     */
+    public function recipes(): HasMany
+    {
+        return $this->hasMany(Recipe::class, 'product_template_id');
     }
 
     /**

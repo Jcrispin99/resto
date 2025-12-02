@@ -15,14 +15,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('attribute_id')->constrained('product_attributes')->onDelete('cascade');
             $table->string('value', 100);
-            $table->string('display_value', 100);
-            $table->string('color_code', 7)->nullable();
-            $table->integer('order')->default(0);
             $table->timestamps();
 
             // Indexes
             $table->index('attribute_id');
-            $table->index('order');
         });
     }
 

@@ -36,9 +36,12 @@ class StockTransfer extends Model
         return $this->belongsTo(Warehouse::class, 'to_warehouse_id');
     }
 
-    public function items(): HasMany
+    /**
+     * Get items via productables (polymorphic).
+     */
+    public function productables()
     {
-        return $this->hasMany(StockTransferItem::class);
+        return $this->morphMany(Productable::class, 'productable');
     }
 
     public function creator(): BelongsTo
@@ -46,9 +49,9 @@ class StockTransfer extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function approver(): BelongsTo
+    public function receiver(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'approved_by');
+        return $this->belongsTo(User::class, 'received_by');
     }
 
     public function scopeStatus($query, string $status)
@@ -56,8 +59,9 @@ class StockTransfer extends Model
         return $query->where('status', $status);
     }
 
-    const STATUS_DRAFT = 'draft';
-    const STATUS_IN_TRANSIT = 'inTransit';
+    // Status constants
+    const STATUS_PENDING = 'pending';
+    const STATUS_IN_TRANSIT = 'in_transit';
     const STATUS_RECEIVED = 'received';
     const STATUS_CANCELLED = 'cancelled';
 }

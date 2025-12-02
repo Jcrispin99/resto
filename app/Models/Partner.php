@@ -13,18 +13,18 @@ class Partner extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'code',
         'partner_type',
         'name',
+        'trade_name',
         'tax_id',
-        'document_type',
-        'document_number',
         'email',
         'phone',
-        'website',
+        'address',
+        'ubigeo_code',
         'is_customer',
         'is_supplier',
-        'credit_limit',
-        'payment_terms',
+        'payment_terms_days',
         'notes',
         'is_active',
     ];
@@ -32,71 +32,45 @@ class Partner extends Model
     protected $casts = [
         'is_customer' => 'boolean',
         'is_supplier' => 'boolean',
-        'credit_limit' => 'decimal:2',
         'is_active' => 'boolean',
+        'payment_terms_days' => 'integer',
     ];
 
     /**
-     * Get partner contacts.
-     */
-    public function contacts(): HasMany
-    {
-        return $this->hasMany(PartnerContact::class);
-    }
-
-    /**
-     * Get partner addresses.
-     */
-    public function addresses(): HasMany
-    {
-        return $this->hasMany(PartnerAddress::class);
-    }
-
-    /**
-     * Get purchase orders.
+     * Get all purchase orders from this partner.
      */
     public function purchaseOrders(): HasMany
     {
-        return $this->hasMany(PurchaseOrder::class);
+        return $this->hasMany(PurchaseOrder::class, 'partner_id');
     }
 
     /**
-     * Get sales orders (as customer).
+     * Scope for customers only.
      */
-    public function orders(): HasMany
+    public function scopeCustomers($query)
     {
-        return $this->hasMany(Order::class);
+        return $query->where('is_customer', true);
     }
 
     /**
-     * Get images.
+     * Scope for suppliers only.
      */
-    public function images(): MorphMany
+    public function scopeSuppliers($query)
     {
-        return $this->morphMany(Imageable::class, 'imageable');
+        return $query->where('is_supplier', true);
     }
 
     /**
-     * Scopes
+     * Scope for active partners.
      */
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
     }
 
-    public function scopeCustomers($query)
-    {
-        return $query->where('is_customer', true);
-    }
-
-    public function scopeSuppliers($query)
-    {
-        return $query->where('is_supplier', true);
-    }
-
-    // Partner & Document types
+    // Partner types
+    const TYPE_INDIVIDUAL = 'individual';
     const TYPE_COMPANY = 'company';
-    const TYPE_PERSON = 'person';
     
     const DOC_DNI = 'DNI';
     const DOC_RUC = 'RUC';

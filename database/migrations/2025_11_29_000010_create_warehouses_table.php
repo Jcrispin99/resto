@@ -13,18 +13,15 @@ return new class extends Migration
     {
         Schema::create('warehouses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('branch_id')->constrained()->onDelete('cascade');
+            $table->foreignId('branch_id')->constrained('branches')->onDelete('cascade');
             $table->string('code', 20)->unique();
             $table->string('name', 100);
-            $table->enum('type', ['main', 'kitchen', 'bar', 'storage'])->default('main');
-            $table->unsignedBigInteger('responsible_user_id')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 
             // Indexes
             $table->index('branch_id');
             $table->index('code');
-            $table->index('type');
             $table->index('is_active');
         });
     }

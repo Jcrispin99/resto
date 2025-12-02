@@ -14,15 +14,51 @@ class ProductCategory extends Model
     protected $fillable = [
         'parent_id',
         'name',
-        'description',
-        'code',
-        'image',
+        'full_name',
         'is_active',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    /**
+     * Boot method to auto-update full_name.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($category) {
+            $category->updateFullName();
+        });
+
+        static::saved(function ($category) {
+            // Update children's full_name when parent changes
+            if ($category->children()->exists()) {
+                foreach ($category->children as $child) {
+                    $child->updateFullName();
+                    $child->saveQuietly();
+                }
+            }
+        });
+    }
+
+    /**
+     * Update the full_name field.
+     */
+    public function updateFullName(): void
+    {
+        $path = [$this->name];
+        $parent = $this->parent;
+
+        while ($parent) {
+            array_unshift($path, $parent->name);
+            $parent = $parent->parent;
+        }
+
+        $this->full_name = implode(' / ', $path);
+    }
 
     /**
      * Get the parent category.
@@ -62,21 +98,5 @@ class ProductCategory extends Model
     public function scopeRoot($query)
     {
         return $query->whereNull('parent_id');
-    }
-
-    /**
-     * Get full path of category names.
-     */
-    public function getFullPathAttribute(): string
-    {
-        $path = [$this->name];
-        $parent = $this->parent;
-
-        while ($parent) {
-            array_unshift($path, $parent->name);
-            $parent = $parent->parent;
-        }
-
-        return implode(' > ', $path);
     }
 }

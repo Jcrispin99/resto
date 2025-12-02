@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PurchaseOrder extends Model
 {
@@ -13,11 +12,13 @@ class PurchaseOrder extends Model
 
     protected $fillable = [
         'order_number',
-        'partner_id',
+        'branch_id',
         'warehouse_id',
+        'partner_id',
         'order_date',
-        'expected_date',
+        'expected_delivery_date',
         'received_date',
+        'paid_date',
         'status',
         'subtotal',
         'tax',
@@ -29,26 +30,44 @@ class PurchaseOrder extends Model
 
     protected $casts = [
         'order_date' => 'date',
-        'expected_date' => 'date',
+        'expected_delivery_date' => 'date',
         'received_date' => 'date',
+        'paid_date' => 'date',
         'subtotal' => 'decimal:2',
         'tax' => 'decimal:2',
         'total' => 'decimal:2',
     ];
 
+    /**
+     * Get the partner (supplier).
+     */
     public function partner(): BelongsTo
     {
         return $this->belongsTo(Partner::class);
     }
 
+    /**
+     * Get the branch.
+     */
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
+    }
+
+    /**
+     * Get the warehouse.
+     */
     public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class);
     }
 
-    public function items(): HasMany
+    /**
+     * Get items via productables (polymorphic).
+     */
+    public function productables()
     {
-        return $this->hasMany(PurchaseOrderItem::class);
+        return $this->morphMany(Productable::class, 'productable');
     }
 
     public function creator(): BelongsTo
@@ -67,9 +86,17 @@ class PurchaseOrder extends Model
     }
 
     // Status constants
-    const STATUS_DRAFT = 'draft';
-    const STATUS_SENT = 'sent';
+    const STATUS_QUOTE_REQUEST = 'quote_request';
+
+    const STATUS_QUOTE_RECEIVED = 'quote_received';
+
+    const STATUS_ORDERED = 'ordered';
+
     const STATUS_APPROVED = 'approved';
+
     const STATUS_RECEIVED = 'received';
+
+    const STATUS_PAID = 'paid';
+
     const STATUS_CANCELLED = 'cancelled';
 }

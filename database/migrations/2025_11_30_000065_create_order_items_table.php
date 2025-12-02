@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('order_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('order_id')->constrained()->onDelete('cascade');
-            $table->foreignId('menu_item_id')->constrained()->onDelete('restrict');
-            $table->foreignId('variant_id')->nullable()->constrained('menu_item_variants')->onDelete('restrict');
+            $table->foreignId('order_id')->constrained('orders')->onDelete('cascade');
+            $table->foreignId('product_template_id')->constrained('product_template')->onDelete('restrict')->comment('Producto ordenado');
+            $table->foreignId('product_id')->nullable()->constrained('product_product')->onDelete('restrict')->comment('Variante específica si aplica');
             $table->integer('quantity');
             $table->decimal('unit_price', 10, 2);
             $table->decimal('discount', 10, 2)->default(0);
@@ -24,7 +24,7 @@ return new class extends Migration
             $table->decimal('subtotal', 10, 2);
             $table->decimal('total', 10, 2);
             $table->enum('status', ['pending', 'preparing', 'ready', 'served', 'cancelled'])->default('pending');
-            $table->text('special_instructions')->nullable();
+            $table->text('special_instructions')->nullable()->comment('Notas de cocina: sin cebolla, término medio, etc.');
             $table->unsignedBigInteger('prepared_by')->nullable();
             $table->timestamp('sent_to_kitchen_at')->nullable();
             $table->timestamp('ready_at')->nullable();
@@ -33,7 +33,8 @@ return new class extends Migration
 
             // Indexes
             $table->index('order_id');
-            $table->index('menu_item_id');
+            $table->index('product_template_id');
+            $table->index('product_id');
             $table->index('status');
 
             // Foreign key

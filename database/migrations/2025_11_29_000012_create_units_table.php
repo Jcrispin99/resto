@@ -13,15 +13,9 @@ return new class extends Migration
     {
         Schema::create('units', function (Blueprint $table) {
             $table->id();
-            $table->string('code', 10)->unique();
             $table->string('name', 50);
             $table->string('abbreviation', 10);
-            $table->enum('type', ['weight', 'volume', 'unit', 'length']);
             $table->timestamps();
-
-            // Indexes
-            $table->index('code');
-            $table->index('type');
         });
     }
 

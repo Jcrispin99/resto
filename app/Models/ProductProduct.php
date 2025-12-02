@@ -18,21 +18,14 @@ class ProductProduct extends Model
 
     protected $fillable = [
         'template_id',
-        'name',
         'sku',
         'barcode',
         'sale_price',
-        'cost_price',
-        'weight',
-        'volume',
         'is_active',
     ];
 
     protected $casts = [
         'sale_price' => 'decimal:2',
-        'cost_price' => 'decimal:2',
-        'weight' => 'decimal:2',
-        'volume' => 'decimal:2',
         'is_active' => 'boolean',
     ];
 
@@ -45,13 +38,13 @@ class ProductProduct extends Model
     }
 
     /**
-     * Get variant attributes.
+     * Get variant attribute values (Talla=M, Color=Rojo).
      */
     public function attributeValues(): BelongsToMany
     {
         return $this->belongsToMany(
             ProductAttributeValue::class,
-            'product_product_attributes',
+            'attribute_value_product',
             'product_id',
             'attribute_value_id'
         );
@@ -98,15 +91,16 @@ class ProductProduct extends Model
     }
 
     /**
-     * Get full product name with variant attributes.
+     * Get auto-generated name (Template + Attributes).
+     * Example: "Polo Deportivo (Rojo, M)"
      */
-    public function getFullNameAttribute(): string
+    public function getNameAttribute(): string
     {
         if ($this->attributeValues->isEmpty()) {
             return $this->template->name;
         }
 
-        $attributes = $this->attributeValues->pluck('name')->implode(', ');
+        $attributes = $this->attributeValues->pluck('value')->implode(', ');
         return "{$this->template->name} ({$attributes})";
     }
 

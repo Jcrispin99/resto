@@ -13,15 +13,15 @@ return new class extends Migration
     {
         Schema::create('combo_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('combo_id')->constrained()->onDelete('cascade');
-            $table->foreignId('menu_item_id')->constrained()->onDelete('cascade');
+            $table->foreignId('combo_id')->constrained('combos')->onDelete('cascade');
+            $table->foreignId('product_template_id')->constrained('product_template')->onDelete('cascade')->comment('Producto que incluye el combo');
             $table->integer('quantity')->default(1);
-            $table->boolean('allow_substitution')->default(false);
+            $table->boolean('allow_substitution')->default(false)->comment('Permitir cambiar por otro producto');
             $table->timestamp('created_at')->useCurrent();
 
             // Indexes
             $table->index('combo_id');
-            $table->index('menu_item_id');
+            $table->index('product_template_id');
         });
     }
 
