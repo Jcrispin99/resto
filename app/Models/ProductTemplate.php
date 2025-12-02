@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -114,6 +113,14 @@ class ProductTemplate extends Model
     }
 
     /**
+     * Get the attribute lines for this template.
+     */
+    public function attributeLines(): HasMany
+    {
+        return $this->hasMany(ProductTemplateAttributeLine::class, 'product_template_id');
+    }
+
+    /**
      * Scope for active templates.
      */
     public function scopeActive($query)
@@ -147,7 +154,10 @@ class ProductTemplate extends Model
 
     // Product types
     const TYPE_CONSUMABLE = 'consumable';
+
     const TYPE_STORABLE = 'storable';
+
     const TYPE_SERVICE = 'service';
+
     const TYPE_COMBO = 'combo';
 }

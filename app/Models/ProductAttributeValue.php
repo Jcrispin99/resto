@@ -12,14 +12,7 @@ class ProductAttributeValue extends Model
 
     protected $fillable = [
         'attribute_id',
-        'name',
-        'code',
-        'html_color',
-        'is_active',
-    ];
-
-    protected $casts = [
-        'is_active' => 'boolean',
+        'value',
     ];
 
     /**
@@ -31,18 +24,10 @@ class ProductAttributeValue extends Model
     }
 
     /**
-     * Scope for active values.
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
-    }
-
-    /**
      * Get full display name (attribute: value).
      */
     public function getFullNameAttribute(): string
     {
-        return "{$this->attribute->name}: {$this->name}";
+        return "{$this->attribute->name}: {$this->value}";
     }
 }

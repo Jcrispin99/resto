@@ -10,8 +10,18 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-Route::get('dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::middleware([
+    'auth:sanctum',
+    config('jetstream.auth_session'),
+    'verified',
+])->group(function () {
+    Route::get('/dashboard', function () {
+        return Inertia::render('Dashboard');
+    })->name('dashboard');
+
+    Route::resource('product-categories', \App\Http\Controllers\ProductCategoryController::class);
+    Route::resource('product-attributes', \App\Http\Controllers\ProductAttributeController::class);
+    Route::resource('product-templates', \App\Http\Controllers\ProductTemplateController::class);
+});
 
 require __DIR__.'/settings.php';

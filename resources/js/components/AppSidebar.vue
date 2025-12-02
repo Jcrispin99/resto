@@ -12,9 +12,10 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import productCategories from '@/routes/product-categories';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-vue-next';
+import { BookOpen, Folder, LayoutGrid, Tag, Package } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
@@ -22,6 +23,21 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Products',
+        href: '/product-templates',
+        icon: Package,
+    },
+    {
+        title: 'Product Categories',
+        href: productCategories.index.url(),
+        icon: Tag,
+    },
+    {
+        title: 'Product Attributes',
+        href: '/product-attributes',
+        icon: Tag,
     },
 ];
 

@@ -12,12 +12,6 @@ class ProductAttribute extends Model
 
     protected $fillable = [
         'name',
-        'display_type',
-        'is_active',
-    ];
-
-    protected $casts = [
-        'is_active' => 'boolean',
     ];
 
     /**
@@ -35,17 +29,4 @@ class ProductAttribute extends Model
     {
         return $this->values()->where('is_active', true);
     }
-
-    /**
-     * Scope for active attributes.
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
-    }
-
-    // Display types
-    const DISPLAY_SELECT = 'select';
-    const DISPLAY_RADIO = 'radio';
-    const DISPLAY_COLOR = 'color';
 }

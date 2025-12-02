@@ -13,16 +13,16 @@ return new class extends Migration
     {
         Schema::create('branch_menu_availability', function (Blueprint $table) {
             $table->foreignId('branch_id')->constrained()->onDelete('cascade');
-            $table->foreignId('menu_item_id')->constrained()->onDelete('cascade');
+            $table->foreignId('product_template_id')->constrained('product_template')->onDelete('cascade');
             $table->boolean('is_available')->default(true);
             $table->decimal('custom_price', 10, 2)->nullable();
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
 
-            $table->primary(['branch_id', 'menu_item_id'], 'branch_menu_primary');
+            $table->primary(['branch_id', 'product_template_id'], 'branch_menu_primary');
 
             // Indexes
             $table->index('branch_id');
-            $table->index('menu_item_id');
+            $table->index('product_template_id');
             $table->index('is_available');
         });
     }
