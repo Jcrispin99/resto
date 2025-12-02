@@ -20,6 +20,7 @@ class ProductTemplate extends Model
         'category_id',
         'menu_category_id',
         'unit_id',
+        'kitchen_station_id',
         'name',
         'description',
         'internal_reference',
@@ -45,7 +46,15 @@ class ProductTemplate extends Model
      */
     public function category(): BelongsTo
     {
-        return $this->belongsTo(ProductCategory::class);
+        return $this->belongsTo(ProductCategory::class, 'category_id');
+    }
+
+    /**
+     * Get the kitchen station for this product.
+     */
+    public function kitchenStation(): BelongsTo
+    {
+        return $this->belongsTo(KitchenStation::class, 'kitchen_station_id');
     }
 
     /**

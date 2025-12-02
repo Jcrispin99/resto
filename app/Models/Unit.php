@@ -13,7 +13,7 @@ class Unit extends Model
     protected $fillable = [
         'code',
         'name',
-        'symbol',
+        'abbreviation',
         'type',
         'is_active',
     ];
@@ -48,7 +48,10 @@ class Unit extends Model
 
     // Unit types
     const TYPE_WEIGHT = 'weight';
+
     const TYPE_VOLUME = 'volume';
+
     const TYPE_LENGTH = 'length';
+
     const TYPE_UNIT = 'unit';
 }
