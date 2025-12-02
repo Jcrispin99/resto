@@ -31,19 +31,27 @@ class Warehouse extends Model
     }
 
     /**
-     * Get all stock entries for this warehouse.
+     * Get all inventory movements (kardex) for this warehouse.
      */
-    public function stock(): HasMany
+    public function inventories(): HasMany
     {
-        return $this->hasMany(Stock::class);
+        return $this->hasMany(Inventory::class);
     }
 
     /**
-     * Get all stock movements for this warehouse.
+     * Get purchase orders to this warehouse.
      */
-    public function stockMovements(): HasMany
+    public function purchaseOrders(): HasMany
     {
-        return $this->hasMany(StockMovement::class);
+        return $this->hasMany(PurchaseOrder::class);
+    }
+
+    /**
+     * Get sale orders from this warehouse.
+     */
+    public function saleOrders(): HasMany
+    {
+        return $this->hasMany(SaleOrder::class);
     }
 
     /**
@@ -68,5 +76,26 @@ class Warehouse extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    /**
+     * Get total value of inventory in this warehouse.
+     */
+    public function getTotalInventoryValue(): float
+    {
+        return $this->inventories()
+            ->selectRaw('SUM(total_balance) as total')
+            ->value('total') ?? 0;
+    }
+
+    /**
+     * Get stock of a specific product in this warehouse.
+     */
+    public function getProductStock(int $productId): float
+    {
+        return $this->inventories()
+            ->where('product_id', $productId)
+            ->selectRaw('SUM(quantity_balance) as total')
+            ->value('total') ?? 0;
     }
 }

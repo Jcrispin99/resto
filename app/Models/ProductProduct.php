@@ -51,19 +51,12 @@ class ProductProduct extends Model
     }
 
     /**
-     * Get stock entries for this variant.
+     * Get inventory movements (kardex) for this variant.
+     * This is the SOURCE OF TRUTH for stock levels.
      */
-    public function stock(): HasMany
+    public function inventories(): HasMany
     {
-        return $this->hasMany(Stock::class, 'product_id');
-    }
-
-    /**
-     * Get stock movements for this variant.
-     */
-    public function stockMovements(): HasMany
-    {
-        return $this->hasMany(StockMovement::class, 'product_id');
+        return $this->hasMany(Inventory::class, 'product_id');
     }
 
     /**
@@ -101,15 +94,29 @@ class ProductProduct extends Model
         }
 
         $attributes = $this->attributeValues->pluck('value')->implode(', ');
+
         return "{$this->template->name} ({$attributes})";
     }
 
     /**
-     * Get total stock across all warehouses.
+     * Get total stock across all warehouses (from kardex balance).
      */
     public function getTotalStockAttribute(): float
     {
-        return $this->stock()->sum('quantity');
+        return $this->inventories()
+            ->selectRaw('SUM(quantity_balance) as total')
+            ->value('total') ?? 0;
+    }
+
+    /**
+     * Get stock for a specific warehouse.
+     */
+    public function getStockInWarehouse(int $warehouseId): float
+    {
+        return $this->inventories()
+            ->where('warehouse_id', $warehouseId)
+            ->selectRaw('SUM(quantity_balance) as total')
+            ->value('total') ?? 0;
     }
 
     /**
@@ -117,10 +124,15 @@ class ProductProduct extends Model
      */
     public function getProfitMarginAttribute(): ?float
     {
-        if (!$this->sale_price || !$this->cost_price) {
+        // Note: cost_price should come from average cost in kardex
+        $avgCost = $this->inventories()
+            ->where('quantity_balance', '>', 0)
+            ->avg('cost_balance');
+
+        if (! $this->sale_price || ! $avgCost) {
             return null;
         }
 
-        return (($this->sale_price - $this->cost_price) / $this->sale_price) * 100;
+        return (($this->sale_price - $avgCost) / $this->sale_price) * 100;
     }
 }

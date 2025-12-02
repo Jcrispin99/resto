@@ -14,6 +14,8 @@ class ProductTemplate extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $table = 'product_template';
+
     protected $fillable = [
         'category_id',
         'menu_category_id',
@@ -138,4 +140,5 @@ class ProductTemplate extends Model
     const TYPE_CONSUMABLE = 'consumable';
     const TYPE_STORABLE = 'storable';
     const TYPE_SERVICE = 'service';
+    const TYPE_COMBO = 'combo';
 }
