@@ -20,6 +20,9 @@ Route::middleware([
     })->name('dashboard');
 
     Route::resource('companies', \App\Http\Controllers\CompanyController::class);
+    Route::resource('warehouses', \App\Http\Controllers\WarehouseController::class);
+    Route::resource('units', \App\Http\Controllers\UnitController::class);
+    Route::resource('partners', \App\Http\Controllers\PartnerController::class);
     Route::resource('product-categories', \App\Http\Controllers\ProductCategoryController::class);
     Route::resource('product-attributes', \App\Http\Controllers\ProductAttributeController::class);
     Route::resource('product-templates', \App\Http\Controllers\ProductTemplateController::class);

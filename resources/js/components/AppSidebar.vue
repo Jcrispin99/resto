@@ -13,12 +13,15 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import companies from '@/routes/companies';
+import warehouses from '@/routes/warehouses';
+import units from '@/routes/units';
+import partners from '@/routes/partners';
 import productCategories from '@/routes/product-categories';
 import productAttributes from '@/routes/product-attributes';
 import productTemplates from '@/routes/product-templates';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Tag, Package, Building2 } from 'lucide-vue-next';
+import { BookOpen, Folder, LayoutGrid, Tag, Package, Building2, Warehouse, Ruler, Users } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
@@ -31,6 +34,21 @@ const mainNavItems: NavItem[] = [
         title: 'Companies',
         href: companies.index.url(),
         icon: Building2,
+    },
+    {
+        title: 'Warehouses',
+        href: warehouses.index.url(),
+        icon: Warehouse,
+    },
+    {
+        title: 'Units',
+        href: units.index.url(),
+        icon: Ruler,
+    },
+    {
+        title: 'Partners',
+        href: partners.index.url(),
+        icon: Users,
     },
     {
         title: 'Products',

@@ -23,11 +23,11 @@ class Warehouse extends Model
     ];
 
     /**
-     * Get the branch this warehouse belongs to.
+     * Get the branch (company) this warehouse belongs to.
      */
     public function branch(): BelongsTo
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Company::class, 'branch_id');
     }
 
     /**
