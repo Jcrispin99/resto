@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('branch_menu_availability', function (Blueprint $table) {
-            $table->foreignId('branch_id')->constrained()->onDelete('cascade');
+            $table->foreignId('branch_id')->constrained('companies')->onDelete('cascade');
             $table->foreignId('product_template_id')->constrained('product_template')->onDelete('cascade');
             $table->boolean('is_available')->default(true);
             $table->decimal('custom_price', 10, 2)->nullable();

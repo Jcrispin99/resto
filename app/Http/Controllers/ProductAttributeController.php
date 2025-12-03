@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ProductAttributeResource;
 use App\Models\ProductAttribute;
 use App\Models\ProductAttributeValue;
 use Illuminate\Http\Request;
@@ -13,10 +14,10 @@ class ProductAttributeController extends Controller
 {
     public function index()
     {
-        $attributes = ProductAttribute::with('values')->latest()->get();
+        $attributes = ProductAttribute::with('values')->latest()->paginate(10);
         
         return Inertia::render('ProductAttributes/Index', [
-            'attributes' => $attributes
+            'attributes' => ProductAttributeResource::collection($attributes)
         ]);
     }
 
@@ -59,7 +60,7 @@ class ProductAttributeController extends Controller
     public function edit(ProductAttribute $productAttribute)
     {
         return Inertia::render('ProductAttributes/Edit', [
-            'attribute' => $productAttribute->load('values')
+            'attribute' => new ProductAttributeResource($productAttribute->load('values'))
         ]);
     }
 

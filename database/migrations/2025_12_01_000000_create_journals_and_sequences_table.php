@@ -23,8 +23,8 @@ return new class extends Migration
         // 2. Journals: Controla la Serie y Tipo (F001, B001, Nota de Venta)
         Schema::create('journals', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('company_id')->constrained()->onDelete('cascade');
-            $table->foreignId('branch_id')->nullable()->constrained()->onDelete('cascade')->comment('Si es null, es una serie global de la empresa');
+            $table->foreignId('company_id')->constrained('companies')->onDelete('cascade');
+            $table->foreignId('branch_id')->nullable()->constrained('companies')->onDelete('cascade')->comment('Si es null, es una serie global de la empresa');
             
             $table->string('name')->comment('Ej: Factura Electrónica F001');
             $table->string('code')->comment('La Serie: F001, B001, NV01');

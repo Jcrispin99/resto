@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('warehouses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('branch_id')->constrained('branches')->onDelete('cascade');
+            $table->foreignId('branch_id')->constrained('companies')->onDelete('cascade');
             $table->string('code', 20)->unique();
             $table->string('name', 100);
             $table->boolean('is_active')->default(true);

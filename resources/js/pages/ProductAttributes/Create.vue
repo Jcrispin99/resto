@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Plus, Trash2 } from 'lucide-vue-next';
+import { store, index } from '@/routes/product-attributes';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 
@@ -16,7 +17,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
     {
         title: 'Product Attributes',
-        href: '/product-attributes',
+        href: index.url(),
     },
     {
         title: 'Create',
@@ -44,7 +45,7 @@ const removeValue = (index: number) => {
 };
 
 const submit = () => {
-    form.post('/product-attributes');
+    form.post(store.url());
 };
 </script>
 
@@ -110,7 +111,7 @@ const submit = () => {
                     </Card>
 
                     <div class="flex justify-end gap-4">
-                        <Link href="/product-attributes">
+                        <Link :href="index.url()">
                             <Button type="button" variant="outline">Cancel</Button>
                         </Link>
                         <Button type="submit" :disabled="form.processing">

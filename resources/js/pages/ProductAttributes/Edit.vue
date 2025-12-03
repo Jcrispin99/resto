@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Plus, Trash2 } from 'lucide-vue-next';
+import { update, index } from '@/routes/product-attributes';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 
@@ -14,14 +15,14 @@ interface AttributeValue {
     value: string;
 }
 
-interface ProductAttribute {
-    id: number;
-    name: string;
-    values: AttributeValue[];
-}
-
 const props = defineProps<{
-    attribute: ProductAttribute;
+    attribute: {
+        data: {
+            id: number;
+            name: string;
+            values: AttributeValue[];
+        };
+    };
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -31,17 +32,17 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
     {
         title: 'Product Attributes',
-        href: '/product-attributes',
+        href: index.url(),
     },
     {
         title: 'Edit',
-        href: `/product-attributes/${props.attribute.id}/edit`,
+        href: `/product-attributes/${props.attribute.data.id}/edit`,
     },
 ];
 
 const form = useForm({
-    name: props.attribute.name,
-    values: props.attribute.values.map(v => ({
+    name: props.attribute.data.name,
+    values: props.attribute.data.values.map(v => ({
         id: v.id,
         value: v.value,
     }))
@@ -56,7 +57,7 @@ const removeValue = (index: number) => {
 };
 
 const submit = () => {
-    form.put(`/product-attributes/${props.attribute.id}`);
+    form.put(update.url(props.attribute.data.id));
 };
 </script>
 
@@ -122,7 +123,7 @@ const submit = () => {
                     </Card>
 
                     <div class="flex justify-end gap-4">
-                        <Link href="/product-attributes">
+                        <Link :href="index.url()">
                             <Button type="button" variant="outline">Cancel</Button>
                         </Link>
                         <Button type="submit" :disabled="form.processing">

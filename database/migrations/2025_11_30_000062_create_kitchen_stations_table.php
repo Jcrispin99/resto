@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('kitchen_stations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('branch_id')->constrained()->onDelete('cascade');
+            $table->foreignId('branch_id')->constrained('companies')->onDelete('cascade');
             $table->string('name', 100);
             $table->string('description')->nullable();
             $table->string('printer_ip', 45)->nullable();

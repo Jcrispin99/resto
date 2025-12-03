@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->string('order_number', 20)->unique();
-            $table->foreignId('branch_id')->constrained()->onDelete('cascade');
-            $table->foreignId('cash_register_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('branch_id')->constrained('companies')->onDelete('cascade');
+            $table->foreignId('cash_register_id')->nullable()->constrained('companies')->onDelete('set null');
             $table->foreignId('table_id')->nullable()->constrained('tables')->onDelete('set null');
-            $table->foreignId('partner_id')->nullable()->constrained()->onDelete('set null')->comment('Customer');
+            $table->foreignId('partner_id')->nullable()->constrained('companies')->onDelete('set null')->comment('Customer');
             $table->enum('order_type', ['dine_in', 'takeout', 'delivery', 'digital_menu'])->default('dine_in');
             $table->enum('status', ['pending', 'confirmed', 'preparing', 'ready', 'served', 'completed', 'cancelled'])->default('pending');
             $table->enum('payment_status', ['unpaid', 'partial', 'paid', 'refunded'])->default('unpaid');

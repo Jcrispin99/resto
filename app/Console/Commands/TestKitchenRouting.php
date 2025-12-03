@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\Company;
-use App\Models\Branch;
 use App\Models\KitchenStation;
 use App\Models\ProductTemplate;
 use App\Models\ProductProduct;
@@ -24,7 +23,14 @@ class TestKitchenRouting extends Command
 
         // 1. Setup Data
         $company = Company::first() ?? Company::factory()->create(['name' => 'Test Company']);
-        $branch = Branch::first() ?? Branch::create(['company_id' => $company->id, 'name' => 'Test Branch', 'code' => 'TB01']);
+        $branch = Company::branches()->first() ?? Company::create([
+            'parent_id' => $company->id, 
+            'name' => 'Test Branch', 
+            'code' => 'TB01',
+            'business_name' => $company->business_name ?? 'Test Company',
+            'trade_name' => $company->trade_name ?? 'Test',
+            'tax_id' => $company->tax_id ?? '12345678901',
+        ]);
         
         $unit = Unit::firstOrCreate(
             ['name' => 'Unit'], 

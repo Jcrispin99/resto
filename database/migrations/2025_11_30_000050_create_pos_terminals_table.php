@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('pos_terminals', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('branch_id')->constrained()->onDelete('cascade');
+            $table->foreignId('branch_id')->constrained('companies')->onDelete('cascade');
             $table->string('code', 20)->unique();
             $table->string('name', 100);
             $table->string('ip_address', 45)->nullable();

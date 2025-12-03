@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('sale_orders', function (Blueprint $table) {
             $table->id();
             $table->string('order_number', 20)->unique();
-            $table->foreignId('branch_id')->constrained('branches')->onDelete('cascade');
+            $table->foreignId('branch_id')->constrained('companies')->onDelete('cascade');
             $table->foreignId('warehouse_id')->nullable()->constrained('warehouses')->onDelete('set null');
             $table->foreignId('partner_id')->constrained('partners')->onDelete('restrict')->comment('Customer');
             

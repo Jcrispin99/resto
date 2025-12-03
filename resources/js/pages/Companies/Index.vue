@@ -11,24 +11,29 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { create, edit, destroy, index } from '@/routes/product-attributes';
+import { create, edit, destroy, index } from '@/routes/companies';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 
-interface AttributeValue {
+interface Company {
     id: number;
-    value: string;
-}
-
-interface ProductAttribute {
-    id: number;
+    parent_id?: number | null;
     name: string;
-    values: AttributeValue[];
+    business_name: string;
+    trade_name: string;
+    tax_id: string;
+    code?: string;
+    email?: string;
+    phone?: string;
+    website?: string;
+    logo?: string;
+    is_active: boolean;
+    children_count?: number;
 }
 
 defineProps<{
-    attributes: {
-        data: ProductAttribute[];
+    companies: {
+        data: Company[];
         meta: any;
         links: any;
     };
@@ -40,71 +45,77 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: dashboard().url,
     },
     {
-        title: 'Product Attributes',
+        title: 'Companies',
         href: index.url(),
     },
 ];
 
-const deleteAttribute = (id: number) => {
-    if (confirm('Are you sure you want to delete this attribute?')) {
+const deleteCompany = (id: number) => {
+    if (confirm('Are you sure you want to delete this company?')) {
         router.delete(destroy.url(id));
     }
 };
 </script>
 
 <template>
-    <Head title="Product Attributes" />
+    <Head title="Companies" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                        Product Attributes
+                        Companies
                     </h2>
                     <Link :href="create.url()">
-                        <Button>Create Attribute</Button>
+                        <Button>Create Company</Button>
                     </Link>
                 </div>
                 <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Values</TableHead>
+                                <TableHead>Business Name</TableHead>
+                                <TableHead>Trade Name</TableHead>
+                                <TableHead>Tax ID</TableHead>
+                                <TableHead>Branches</TableHead>
+                                <TableHead>Status</TableHead>
                                 <TableHead class="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <TableRow v-for="attribute in attributes.data" :key="attribute.id">
-                                <TableCell class="font-medium">{{ attribute.name }}</TableCell>
+                            <TableRow v-for="company in companies.data" :key="company.id">
+                                <TableCell class="font-medium">{{ company.business_name }}</TableCell>
+                                <TableCell>{{ company.trade_name }}</TableCell>
+                                <TableCell>{{ company.tax_id }}</TableCell>
                                 <TableCell>
-                                    <div class="flex flex-wrap gap-1">
-                                        <Badge v-for="val in attribute.values" :key="val.id" variant="secondary" class="text-xs">
-                                            {{ val.value }}
-                                        </Badge>
-                                    </div>
+                                    <Badge variant="outline">{{ company.children_count || 0 }} branches</Badge>
+                                </TableCell>
+                                <TableCell>
+                                    <Badge :variant="company.is_active ? 'default' : 'secondary'">
+                                        {{ company.is_active ? 'Active' : 'Inactive' }}
+                                    </Badge>
                                 </TableCell>
                                 <TableCell class="text-right space-x-2">
-                                    <Link :href="edit.url(attribute.id)">
+                                    <Link :href="edit.url(company.id)">
                                         <Button variant="outline" size="sm">Edit</Button>
                                     </Link>
-                                    <Button variant="destructive" size="sm" @click="deleteAttribute(attribute.id)">
+                                    <Button variant="destructive" size="sm" @click="deleteCompany(company.id)">
                                         Delete
                                     </Button>
                                 </TableCell>
                             </TableRow>
-                            <TableRow v-if="attributes.data.length === 0">
-                                <TableCell colspan="3" class="text-center py-8 text-gray-500">
-                                    No attributes found.
+                            <TableRow v-if="companies.data.length === 0">
+                                <TableCell colspan="6" class="text-center py-8 text-gray-500">
+                                    No companies found.
                                 </TableCell>
                             </TableRow>
                         </TableBody>
                     </Table>
 
                     <!-- Pagination -->
-                    <div class="mt-4 flex justify-center space-x-2" v-if="attributes.meta.last_page > 1">
-                        <Link v-for="link in attributes.meta.links" 
+                    <div class="mt-4 flex justify-center space-x-2" v-if="companies.meta.last_page > 1">
+                        <Link v-for="link in companies.meta.links" 
                               :key="link.label" 
                               :href="link.url || '#'" 
                               class="px-3 py-1 border rounded"

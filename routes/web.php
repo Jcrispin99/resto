@@ -19,6 +19,7 @@ Route::middleware([
         return Inertia::render('Dashboard');
     })->name('dashboard');
 
+    Route::resource('companies', \App\Http\Controllers\CompanyController::class);
     Route::resource('product-categories', \App\Http\Controllers\ProductCategoryController::class);
     Route::resource('product-attributes', \App\Http\Controllers\ProductAttributeController::class);
     Route::resource('product-templates', \App\Http\Controllers\ProductTemplateController::class);

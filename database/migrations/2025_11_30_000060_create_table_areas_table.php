@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('table_areas', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('branch_id')->constrained()->onDelete('cascade');
+            $table->foreignId('branch_id')->constrained('companies')->onDelete('cascade');
             $table->string('name', 100);
             $table->text('description')->nullable();
             $table->integer('order')->default(0);
