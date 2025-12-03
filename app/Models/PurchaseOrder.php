@@ -47,11 +47,11 @@ class PurchaseOrder extends Model
     }
 
     /**
-     * Get the branch.
+     * Get the branch (company).
      */
     public function branch(): BelongsTo
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Company::class, 'branch_id');
     }
 
     /**

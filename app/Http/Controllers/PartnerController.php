@@ -119,6 +119,39 @@ class PartnerController extends Controller
     }
 
     /**
+     * Search partners for autocomplete.
+     */
+    public function search(Request $request)
+    {
+        $query = $request->get('q', '');
+        $type = $request->get('type'); // 'suppliers' or 'customers'
+
+        $partners = Partner::query()
+            ->when($query, function ($q) use ($query) {
+                $q->where(function ($q2) use ($query) {
+                    $q2->where('name', 'like', "%{$query}%")
+                        ->orWhere('code', 'like', "%{$query}%")
+                        ->orWhere('tax_id', 'like', "%{$query}%");
+                });
+            })
+            ->when($type === 'suppliers', fn($q) => $q->suppliers())
+            ->when($type === 'customers', fn($q) => $q->customers())
+            ->active()
+            ->limit(20)
+            ->get()
+            ->map(function ($partner) {
+                return [
+                    'id' => $partner->id,
+                    'name' => $partner->name,
+                    'code' => $partner->code,
+                    'tax_id' => $partner->tax_id,
+                ];
+            });
+
+        return response()->json($partners);
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)

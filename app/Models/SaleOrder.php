@@ -54,11 +54,11 @@ class SaleOrder extends Model
     }
 
     /**
-     * Get the branch.
+     * Get the branch (company).
      */
     public function branch(): BelongsTo
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Company::class, 'branch_id');
     }
 
     /**
@@ -105,10 +105,16 @@ class SaleOrder extends Model
 
     // Status constants
     const STATUS_QUOTE = 'quote';
+
     const STATUS_QUOTE_SENT = 'quote_sent';
+
     const STATUS_APPROVED = 'approved';
+
     const STATUS_PROCESSING = 'processing';
+
     const STATUS_DELIVERED = 'delivered';
+
     const STATUS_PAID = 'paid';
+
     const STATUS_CANCELLED = 'cancelled';
 }

@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class StockTransfer extends Model
 {
@@ -61,7 +60,10 @@ class StockTransfer extends Model
 
     // Status constants
     const STATUS_PENDING = 'pending';
+
     const STATUS_IN_TRANSIT = 'in_transit';
+
     const STATUS_RECEIVED = 'received';
+
     const STATUS_CANCELLED = 'cancelled';
 }
