@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import PartnerAutocomplete from '@/components/PartnerAutocomplete.vue';
+import ProductAutocomplete from '@/components/ProductAutocomplete.vue';
 import { update, index } from '@/routes/purchase-orders';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
@@ -14,6 +16,15 @@ interface Product {
     id: number;
     name: string;
     sku?: string;
+    sale_price?: number;
+}
+
+interface Tax {
+    id: number;
+    name: string;
+    rate_percent: number;
+    is_price_inclusive: boolean;
+    invoice_label?: string;
 }
 
 interface OrderItem {
@@ -22,6 +33,7 @@ interface OrderItem {
     quantity: number;
     unit_price: number;
     discount: number;
+    tax_id: number | null;
     tax_amount: number;
     total: number;
     notes: string;
@@ -35,6 +47,7 @@ interface Props {
             branch_id: number;
             warehouse_id: number;
             partner_id: number;
+            partner_name?: string;
             order_date: string;
             expected_delivery_date?: string;
             status: string;
@@ -44,8 +57,7 @@ interface Props {
     };
     branches: { data: any[] };
     warehouses: { data: any[] };
-    suppliers: { data: any[] };
-    products: Product[];
+    taxes?: Tax[];
 }
 
 const props = defineProps<Props>();
@@ -74,6 +86,8 @@ const statuses = [
     { value: 'paid', label: 'Paid' },
 ];
 
+const defaultTaxId = computed(() => props.taxes && props.taxes.length > 0 ? props.taxes[0].id : null);
+
 const form = useForm({
     order_number: props.order.data.order_number,
     branch_id: props.order.data.branch_id,
@@ -89,6 +103,7 @@ const form = useForm({
         quantity: Number(item.quantity),
         unit_price: Number(item.unit_price),
         discount: Number(item.discount || 0),
+        tax_id: item.tax_id || defaultTaxId.value,
         tax_amount: Number(item.tax_amount || 0),
         total: Number(item.total),
         notes: item.notes || '',
@@ -103,6 +118,7 @@ if (form.items.length === 0) {
         quantity: 1,
         unit_price: 0,
         discount: 0,
+        tax_id: defaultTaxId.value,
         tax_amount: 0,
         total: 0,
         notes: '',
@@ -116,6 +132,7 @@ const addItem = () => {
         quantity: 1,
         unit_price: 0,
         discount: 0,
+        tax_id: defaultTaxId.value,
         tax_amount: 0,
         total: 0,
         notes: '',
@@ -128,25 +145,43 @@ const removeItem = (index: number) => {
     }
 };
 
-const updateItemProduct = (index: number, productId: number) => {
-    const product = props.products.find(p => p.id === productId);
-    if (product) {
-        form.items[index].product_id = productId;
-        form.items[index].product_name = product.name;
-    }
+const updateItemProduct = (index: number, product: Product) => {
+    form.items[index].product_id = product.id;
+    form.items[index].product_name = product.name;
 };
 
 const calculateItemTotal = (index: number) => {
     const item = form.items[index];
     const subtotal = item.quantity * item.unit_price;
     const afterDiscount = subtotal - item.discount;
-    item.total = afterDiscount + item.tax_amount;
+    
+    // Calculate Tax
+    let taxAmount = 0;
+    let itemTotal = afterDiscount;
+    
+    if (item.tax_id && props.taxes) {
+        const tax = props.taxes.find(t => t.id === item.tax_id);
+        if (tax) {
+            const rate = Number(tax.rate_percent) / 100;
+            
+            if (tax.is_price_inclusive) {
+                taxAmount = (afterDiscount * rate) / (1 + rate);
+                itemTotal = afterDiscount;
+            } else {
+                taxAmount = afterDiscount * rate;
+                itemTotal = afterDiscount + taxAmount;
+            }
+        }
+    }
+    
+    item.tax_amount = Number(taxAmount.toFixed(2));
+    item.total = Number(itemTotal.toFixed(2));
 };
 
-// Watch for changes in quantity, unit_price, discount, or tax_amount
+// Watch for changes in quantity, unit_price, discount, or tax_id
 form.items.forEach((_, index) => {
     watch(
-        () => [form.items[index].quantity, form.items[index].unit_price, form.items[index].discount, form.items[index].tax_amount],
+        () => [form.items[index].quantity, form.items[index].unit_price, form.items[index].discount, form.items[index].tax_id],
         () => calculateItemTotal(index)
     );
 });
@@ -193,16 +228,12 @@ const submit = () => {
                                 <!-- Supplier -->
                                 <div class="space-y-2">
                                     <Label for="partner_id">Supplier *</Label>
-                                    <Select v-model="form.partner_id">
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select supplier" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem v-for="supplier in suppliers.data" :key="supplier.id" :value="supplier.id">
-                                                {{ supplier.name }}
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                    <PartnerAutocomplete 
+                                        v-model="form.partner_id" 
+                                        type="suppliers"
+                                        placeholder="Search supplier..."
+                                        :initial-name="order.data.partner_name || ''"
+                                    />
                                     <div v-if="form.errors.partner_id" class="text-red-500 text-sm">
                                         {{ form.errors.partner_id }}
                                     </div>
@@ -297,16 +328,12 @@ const submit = () => {
                                     <!-- Product -->
                                     <div class="col-span-3">
                                         <Label :for="`product_${index}`" class="text-xs">Product *</Label>
-                                        <Select v-model="item.product_id" @update:model-value="updateItemProduct(index, $event)">
-                                            <SelectTrigger class="h-9">
-                                                <SelectValue placeholder="Select" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem v-for="product in products" :key="product.id" :value="product.id">
-                                                    {{ product.name }}
-                                                </SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                        <ProductAutocomplete 
+                                            v-model="item.product_id"
+                                            :initial-name="item.product_name"
+                                            @select="updateItemProduct(index, $event)"
+                                            placeholder="Search product..."
+                                        />
                                     </div>
 
                                     <!-- Quantity -->
@@ -332,9 +359,20 @@ const submit = () => {
 
                                     <!-- Tax -->
                                     <div class="col-span-2">
-                                        <Label :for="`tax_${index}`" class="text-xs">Tax</Label>
-                                        <Input :id="`tax_${index}`" type="number" v-model.number="item.tax_amount" 
-                                               class="h-9" step="0.01" min="0" />
+                                        <Label class="text-xs">Tax</Label>
+                                        <Select v-model="item.tax_id" @update:modelValue="calculateItemTotal(index)">
+                                            <SelectTrigger class="h-9">
+                                                <SelectValue placeholder="Select Tax" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem v-for="tax in taxes" :key="tax.id" :value="tax.id">
+                                                    {{ tax.invoice_label || tax.name }}
+                                                </SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <div class="text-xs text-gray-500 mt-1 text-right">
+                                            {{ item.tax_amount.toFixed(2) }}
+                                        </div>
                                     </div>
 
                                     <!-- Total (readonly) -->

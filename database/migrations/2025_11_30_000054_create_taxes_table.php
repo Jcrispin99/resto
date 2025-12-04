@@ -14,17 +14,17 @@ return new class extends Migration
         Schema::create('taxes', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
-            $table->text('description')->nullable();
-            $table->string('invoice_label')->nullable()->comment('Label shown on invoice');
-            $table->string('tax_type')->comment('IGV, ISC, ICBPER, RETENCION, PERCEPCION, etc.');
-            $table->string('affectation_type_code', 2)->nullable()->comment('SUNAT Catalog 07');
-            $table->decimal('rate_percent', 5, 2)->default(0)->comment('18.00 for IGV, 0.30 for ICBPER');
-            $table->boolean('is_price_inclusive')->default(false)->comment('Tax included in price');
+            $table->string('description')->nullable();
+            $table->string('invoice_label')->nullable();
+            $table->string('tax_type'); // IGV, ISC, RETENCION, etc.
+            $table->string('affectation_type_code')->nullable(); // SUNAT Cat. 07
+            $table->decimal('rate_percent', 5, 2)->default(0);
+            $table->boolean('is_price_inclusive')->default(false);
             $table->boolean('is_active')->default(true);
             $table->boolean('is_default')->default(false);
             $table->timestamps();
 
-            // Indexes for frequent queries
+            // Índices para consultas frecuentes
             $table->index('tax_type');
             $table->index('affectation_type_code');
             $table->index('is_active');

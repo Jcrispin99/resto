@@ -15,7 +15,8 @@ class Productable extends Model
         'productable_type',
         'productable_id',
         'quantity',
-        'unit_price',
+        'price',
+        'subtotal',
         'discount',
         'tax_amount',
         'total',
@@ -24,7 +25,8 @@ class Productable extends Model
 
     protected $casts = [
         'quantity' => 'decimal:2',
-        'unit_price' => 'decimal:2',
+        'price' => 'decimal:2',
+        'subtotal' => 'decimal:2',
         'discount' => 'decimal:2',
         'tax_amount' => 'decimal:2',
         'total' => 'decimal:2',

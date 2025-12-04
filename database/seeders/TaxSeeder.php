@@ -13,89 +13,104 @@ class TaxSeeder extends Seeder
     public function run(): void
     {
         $taxes = [
-            // IGV - Impuesto General a las Ventas (18%)
             [
-                'name' => 'IGV 18%',
-                'description' => 'Impuesto General a las Ventas del 18%',
-                'invoice_label' => 'IGV',
-                'tax_type' => Tax::TYPE_IGV,
-                'affectation_type_code' => Tax::AFFECTATION_GRAVADO, // 10 - Gravado
+                'name' => '18% IGV',
+                'description' => 'Gravado - Operación Onerosa',
+                'invoice_label' => 'IGV 18%',
+                'tax_type' => 'IGV',
+                'affectation_type_code' => '10',
                 'rate_percent' => 18.00,
-                'is_price_inclusive' => false,
                 'is_active' => true,
                 'is_default' => true,
             ],
-
-            // ICBPER - Impuesto a las Bolsas Plásticas
             [
-                'name' => 'ICBPER',
-                'description' => 'Impuesto al Consumo de Bolsas Plásticas',
-                'invoice_label' => 'Bolsa Plástica',
-                'tax_type' => Tax::TYPE_ICBPER,
+                'name' => '0% Exo',
+                'description' => 'Exonerado',
+                'invoice_label' => 'EXO 0%',
+                'tax_type' => 'IGV',
+                'affectation_type_code' => '20',
+                'rate_percent' => 0.00,
+                'is_active' => true,
+                'is_default' => false,
+            ],
+            [
+                'name' => '0% Ina',
+                'description' => 'Inafecto',
+                'invoice_label' => 'INA 0%',
+                'tax_type' => 'IGV',
+                'affectation_type_code' => '31',
+                'rate_percent' => 0.00,
+                'is_active' => false,
+                'is_default' => false,
+            ],
+            [
+                'name' => '0% GRA',
+                'description' => 'Gravado 0% (sin IGV)',
+                'invoice_label' => 'GRA 0%',
+                'tax_type' => 'IGV',
+                'affectation_type_code' => '10',
+                'rate_percent' => 0.00,
+                'is_active' => false,
+                'is_default' => false,
+            ],
+            [
+                'name' => '0% ISC',
+                'description' => 'Impuesto Selectivo al Consumo 0%',
+                'invoice_label' => 'ISC 0%',
+                'tax_type' => 'ISC',
                 'affectation_type_code' => null,
-                'rate_percent' => 0.40, // S/ 0.40 por bolsa (actualizado 2024)
-                'is_price_inclusive' => false,
-                'is_active' => true,
-                'is_default' => false,
-            ],
-
-            // ISC Bebidas - Impuesto Selectivo al Consumo
-            [
-                'name' => 'ISC Bebidas 25%',
-                'description' => 'Impuesto Selectivo al Consumo para bebidas alcohólicas',
-                'invoice_label' => 'ISC',
-                'tax_type' => Tax::TYPE_ISC,
-                'affectation_type_code' => Tax::AFFECTATION_GRAVADO,
-                'rate_percent' => 25.00,
-                'is_price_inclusive' => false,
-                'is_active' => true,
-                'is_default' => false,
-            ],
-
-            // Exonerado
-            [
-                'name' => 'Exonerado',
-                'description' => 'Operación exonerada de IGV',
-                'invoice_label' => 'EXONERADO',
-                'tax_type' => 'EXONERADO',
-                'affectation_type_code' => Tax::AFFECTATION_EXONERADO, // 20
                 'rate_percent' => 0.00,
-                'is_price_inclusive' => false,
-                'is_active' => true,
+                'is_active' => false,
                 'is_default' => false,
             ],
-
-            // Inafecto
             [
-                'name' => 'Inafecto',
-                'description' => 'Operación inafecta de IGV',
-                'invoice_label' => 'INAFECTO',
-                'tax_type' => 'INAFECTO',
-                'affectation_type_code' => Tax::AFFECTATION_INAFECTO, // 30
+                'name' => '0% EXP',
+                'description' => 'Exportación',
+                'invoice_label' => 'EXP 0%',
+                'tax_type' => 'IGV',
+                'affectation_type_code' => '40',
                 'rate_percent' => 0.00,
-                'is_price_inclusive' => false,
-                'is_active' => true,
+                'is_active' => false,
                 'is_default' => false,
             ],
-
-            // Gratuito
             [
-                'name' => 'Gratuito',
-                'description' => 'Transferencia gratuita',
-                'invoice_label' => 'GRATUITO',
-                'tax_type' => 'GRATUITO',
-                'affectation_type_code' => Tax::AFFECTATION_GRATUITO, // 11
-                'rate_percent' => 0.00,
-                'is_price_inclusive' => false,
-                'is_active' => true,
+                'name' => '18% Free Final',
+                'description' => 'Gratuita/Bonificación',
+                'invoice_label' => 'IGV 18% Gratuito',
+                'tax_type' => 'IGV',
+                'affectation_type_code' => '11',
+                'rate_percent' => 18.00,
+                'is_active' => false,
+                'is_default' => false,
+            ],
+            [
+                'name' => 'Retención 3%',
+                'description' => 'Retención a proveedores (SUNAT)',
+                'invoice_label' => 'RET 3%',
+                'tax_type' => 'RETENCION',
+                'affectation_type_code' => null,
+                'rate_percent' => 3.00,
+                'is_active' => false,
+                'is_default' => false,
+            ],
+            [
+                'name' => '18% TTC',
+                'description' => 'IGV incluido en el precio',
+                'invoice_label' => 'IGV 18% TTC',
+                'tax_type' => 'IGV',
+                'affectation_type_code' => '10',
+                'rate_percent' => 18.00,
+                'is_price_inclusive' => true,
+                'is_active' => false,
                 'is_default' => false,
             ],
         ];
 
-        foreach ($taxes as $taxData) {
-            Tax::create($taxData);
+        foreach ($taxes as $data) {
+            Tax::updateOrCreate(
+                ['name' => $data['name']],
+                $data
+            );
         }
-
-        $this->command->info('✅ Created ' . count($taxes) . ' SUNAT taxes');
     }
 }

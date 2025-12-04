@@ -24,12 +24,21 @@ interface Partner {
     name: string;
 }
 
+interface Tax {
+    id: number;
+    name: string;
+    rate_percent: number;
+    is_price_inclusive: boolean;
+    invoice_label?: string;
+}
+
 interface OrderItem {
     product_id: number | null;
     product_name: string;
     quantity: number;
     unit_price: number;
     discount: number;
+    tax_id: number | null;
     tax_amount: number;
     total: number;
 }
@@ -37,9 +46,10 @@ interface OrderItem {
 interface Props {
     branches: { data: any[] };
     warehouses: { data: any[] };
+    taxes?: Tax[];
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -67,6 +77,8 @@ const statuses = [
 
 const today = new Date().toISOString().split('T')[0];
 
+const defaultTaxId = computed(() => props.taxes && props.taxes.length > 0 ? props.taxes[0].id : null);
+
 const form = useForm({
     order_number: '',
     branch_id: null as number | null,
@@ -91,6 +103,7 @@ if (form.items.length === 0) {
         quantity: 1,
         unit_price: 0,
         discount: 0,
+        tax_id: defaultTaxId.value,
         tax_amount: 0,
         total: 0,
     });
@@ -103,6 +116,7 @@ const addItem = () => {
         quantity: 1,
         unit_price: 0,
         discount: 0,
+        tax_id: defaultTaxId.value,
         tax_amount: 0,
         total: 0,
     });
@@ -125,13 +139,34 @@ const calculateItemTotal = (index: number) => {
     const item = form.items[index];
     const subtotal = item.quantity * item.unit_price;
     const afterDiscount = subtotal - item.discount;
-    item.total = afterDiscount + item.tax_amount;
+    
+    // Calculate Tax
+    let taxAmount = 0;
+    let itemTotal = afterDiscount;
+    
+    if (item.tax_id && props.taxes) {
+        const tax = props.taxes.find(t => t.id === item.tax_id);
+        if (tax) {
+            const rate = Number(tax.rate_percent) / 100;
+            
+            if (tax.is_price_inclusive) {
+                taxAmount = (afterDiscount * rate) / (1 + rate);
+                itemTotal = afterDiscount;
+            } else {
+                taxAmount = afterDiscount * rate;
+                itemTotal = afterDiscount + taxAmount;
+            }
+        }
+    }
+    
+    item.tax_amount = Number(taxAmount.toFixed(2));
+    item.total = Number(itemTotal.toFixed(2));
 };
 
 // Watch for changes in item fields
 form.items.forEach((_, index) => {
     watch(
-        () => [form.items[index].quantity, form.items[index].unit_price, form.items[index].discount, form.items[index].tax_amount],
+        () => [form.items[index].quantity, form.items[index].unit_price, form.items[index].discount, form.items[index].tax_id],
         () => calculateItemTotal(index)
     );
 });

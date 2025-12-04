@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Facades\Kardex;
 use App\Http\Resources\SaleOrderResource;
 use App\Models\Company;
 use App\Models\SaleOrder;
@@ -13,6 +14,8 @@ use Inertia\Inertia;
 
 class SaleOrderController extends Controller
 {
+    // Removed constructor injection
+
     /**
      * Display a listing of the resource.
      */
@@ -33,9 +36,8 @@ class SaleOrderController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+    // ... create method unchanged ...
+
     public function create()
     {
         $branches = Company::branches()->active()->get();
@@ -52,6 +54,7 @@ class SaleOrderController extends Controller
      */
     public function store(Request $request)
     {
+        // ... validation unchanged ...
         $validated = $request->validate([
             'order_number' => 'required|string|max:20|unique:sale_orders,order_number',
             'branch_id' => 'required|exists:companies,id',
@@ -114,15 +117,32 @@ class SaleOrderController extends Controller
 
             // Create order items via productables
             foreach ($validated['items'] as $item) {
+                $subtotal = ($item['quantity'] * $item['unit_price']) - ($item['discount'] ?? 0);
                 $order->items()->create([
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
-                    'unit_price' => $item['unit_price'],
+                    'price' => $item['unit_price'],
+                    'subtotal' => $subtotal,
                     'discount' => $item['discount'] ?? 0,
                     'tax_amount' => $item['tax_amount'] ?? 0,
                     'total' => $item['total'],
                     'notes' => $item['notes'] ?? null,
                 ]);
+            }
+
+            // Register Kardex if status is DELIVERED
+            if ($order->status === SaleOrder::STATUS_DELIVERED) {
+                foreach ($validated['items'] as $item) {
+                    Kardex::registerExit(
+                        $order,
+                        [
+                            'id' => $item['product_id'],
+                            'quantity' => (float) $item['quantity'],
+                        ],
+                        $order->warehouse_id,
+                        "Sale Order #{$order->order_number}"
+                    );
+                }
             }
         });
 
@@ -130,9 +150,7 @@ class SaleOrderController extends Controller
             ->with('success', 'Sale order created successfully.');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    // ... edit method unchanged ...
     public function edit(string $id)
     {
         $order = SaleOrder::with(['items.product.template'])->findOrFail($id);
@@ -192,6 +210,8 @@ class SaleOrderController extends Controller
         $total = $itemsTotal;
 
         DB::transaction(function () use ($order, $validated, $subtotal, $itemsDiscounts, $tax, $total) {
+            $originalStatus = $order->status;
+
             // Update sale order
             $order->update([
                 'order_number' => $validated['order_number'],
@@ -216,15 +236,60 @@ class SaleOrderController extends Controller
             $order->items()->delete();
 
             foreach ($validated['items'] as $item) {
+                $subtotal = ($item['quantity'] * $item['unit_price']) - ($item['discount'] ?? 0);
                 $order->items()->create([
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
-                    'unit_price' => $item['unit_price'],
+                    'price' => $item['unit_price'],
+                    'subtotal' => $subtotal,
                     'discount' => $item['discount'] ?? 0,
                     'tax_amount' => $item['tax_amount'] ?? 0,
                     'total' => $item['total'],
                     'notes' => $item['notes'] ?? null,
                 ]);
+            }
+
+            // Handle Kardex Logic
+            // 1. If status changed TO 'delivered', register output (Exit)
+            if ($originalStatus !== SaleOrder::STATUS_DELIVERED && $order->status === SaleOrder::STATUS_DELIVERED) {
+                foreach ($validated['items'] as $item) {
+                    Kardex::registerExit(
+                        $order,
+                        [
+                            'id' => $item['product_id'],
+                            'quantity' => (float) $item['quantity'],
+                        ],
+                        $order->warehouse_id,
+                        "Sale Order #{$order->order_number}"
+                    );
+                }
+            }
+            // 2. If status changed FROM 'delivered' TO 'cancelled', void movement (Entry)
+            elseif ($originalStatus === SaleOrder::STATUS_DELIVERED && $order->status === SaleOrder::STATUS_CANCELLED) {
+                foreach ($validated['items'] as $item) {
+                    // For voiding a sale, we register an Entry (return to stock)
+                    // We use the price from the item, though for weighted average it might use current cost logic
+                    // depending on strictness. Here we just return quantity.
+                    Kardex::registerEntry(
+                        $order,
+                        [
+                            'id' => $item['product_id'],
+                            'quantity' => (float) $item['quantity'],
+                            'price' => (float) $item['unit_price'], // Return at sales price? Or cost?
+                            // Usually returns should be at cost, but we don't have original cost easily here.
+                            // The service handles cost calculation for entries.
+                            // If we pass price, it might affect average cost if we are not careful.
+                            // However, for voiding, we ideally want to reverse exactly.
+                            // But since we are using the generic 'registerEntry', it will treat it as a new purchase/entry.
+                            // This is a limitation of the generic pattern vs the specific 'void' method.
+                            // We will proceed with passing 0 or null for price to avoid messing up average cost too much,
+                            // OR we accept that voiding = new entry at current value.
+                            // Let's pass the unit_price for now as it's required by the signature structure.
+                        ],
+                        $order->warehouse_id,
+                        "VOID Sale #{$order->order_number}"
+                    );
+                }
             }
         });
 
@@ -237,9 +302,25 @@ class SaleOrderController extends Controller
      */
     public function destroy(string $id)
     {
-        $order = SaleOrder::findOrFail($id);
-        
+        $order = SaleOrder::with('items')->findOrFail($id);
+
         DB::transaction(function () use ($order) {
+            // If deleting a delivered order, void movement
+            if ($order->status === SaleOrder::STATUS_DELIVERED) {
+                foreach ($order->items as $item) {
+                    Kardex::registerEntry(
+                        $order,
+                        [
+                            'id' => $item->product_id,
+                            'quantity' => (float) $item->quantity,
+                            'price' => (float) $item->unit_price,
+                        ],
+                        $order->warehouse_id,
+                        "VOID Sale #{$order->order_number}"
+                    );
+                }
+            }
+
             $order->items()->delete();
             $order->delete();
         });

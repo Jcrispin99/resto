@@ -14,10 +14,12 @@ interface Product {
 interface Props {
     modelValue?: number | null;
     placeholder?: string;
+    initialName?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
     placeholder: 'Search product by name or SKU...',
+    initialName: '',
 });
 
 const emit = defineEmits<{
@@ -30,6 +32,15 @@ const results = ref<Product[]>([]);
 const loading = ref(false);
 const showResults = ref(false);
 const selectedProduct = ref<Product | null>(null);
+
+// Set initial name if provided (for Edit mode)
+if (props.initialName && props.modelValue) {
+    searchQuery.value = props.initialName;
+    selectedProduct.value = {
+        id: props.modelValue,
+        name: props.initialName,
+    };
+}
 
 const searchProducts = debounce(async () => {
     if (searchQuery.value.length < 2) {

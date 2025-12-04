@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Facades\Kardex; // Import Facade
 use App\Http\Resources\PurchaseOrderResource;
 use App\Models\Company;
-use App\Models\Partner;
-use App\Models\ProductProduct;
 use App\Models\PurchaseOrder;
 use App\Models\Warehouse;
 use Illuminate\Http\Request;
@@ -15,6 +14,8 @@ use Inertia\Inertia;
 
 class PurchaseOrderController extends Controller
 {
+    // Removed constructor injection
+
     /**
      * Display a listing of the resource.
      */
@@ -39,10 +40,12 @@ class PurchaseOrderController extends Controller
     {
         $branches = Company::branches()->active()->get();
         $warehouses = Warehouse::active()->get();
+        $taxes = \App\Models\Tax::active()->get();
 
         return Inertia::render('PurchaseOrders/Create', [
             'branches' => \App\Http\Resources\CompanyResource::collection($branches),
             'warehouses' => \App\Http\Resources\WarehouseResource::collection($warehouses),
+            'taxes' => $taxes,
         ]);
     }
 
@@ -102,15 +105,36 @@ class PurchaseOrderController extends Controller
 
             // Create order items via productables
             foreach ($validated['items'] as $item) {
+                $subtotal = ($item['quantity'] * $item['unit_price']) - ($item['discount'] ?? 0);
                 $order->productables()->create([
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
-                    'unit_price' => $item['unit_price'],
+                    'price' => $item['unit_price'],
+                    'subtotal' => $subtotal,
                     'discount' => $item['discount'] ?? 0,
                     'tax_amount' => $item['tax_amount'] ?? 0,
                     'total' => $item['total'],
                     'notes' => $item['notes'] ?? null,
                 ]);
+            }
+
+            // Register Kardex if status is RECEIVED
+            if ($order->status === PurchaseOrder::STATUS_RECEIVED) {
+                // Reload items to get fresh data if needed, or use validated
+                // Using validated items loop for simplicity as we have the data
+                foreach ($validated['items'] as $item) {
+                    Kardex::registerEntry(
+                        $order,
+                        [
+                            'id' => $item['product_id'],
+                            'quantity' => (float) $item['quantity'],
+                            'price' => (float) $item['unit_price'],
+                            'subtotal' => (float) $item['total'], // Assuming total is subtotal for cost calc
+                        ],
+                        $order->warehouse_id,
+                        "Purchase Order #{$order->order_number}"
+                    );
+                }
             }
         });
 
@@ -136,11 +160,13 @@ class PurchaseOrderController extends Controller
         $order = PurchaseOrder::with(['productables.product.template'])->findOrFail($id);
         $branches = Company::branches()->active()->get();
         $warehouses = Warehouse::active()->get();
+        $taxes = \App\Models\Tax::active()->get();
 
         return Inertia::render('PurchaseOrders/Edit', [
             'order' => new PurchaseOrderResource($order),
             'branches' => \App\Http\Resources\CompanyResource::collection($branches),
             'warehouses' => \App\Http\Resources\WarehouseResource::collection($warehouses),
+            'taxes' => $taxes,
         ]);
     }
 
@@ -184,6 +210,8 @@ class PurchaseOrderController extends Controller
         $total = $subtotal;
 
         DB::transaction(function () use ($order, $validated, $subtotal, $tax, $total) {
+            $originalStatus = $order->status;
+
             // Update purchase order
             $order->update([
                 'order_number' => $validated['order_number'],
@@ -203,15 +231,57 @@ class PurchaseOrderController extends Controller
             $order->productables()->delete();
 
             foreach ($validated['items'] as $item) {
+                $subtotal = ($item['quantity'] * $item['unit_price']) - ($item['discount'] ?? 0);
                 $order->productables()->create([
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
-                    'unit_price' => $item['unit_price'],
+                    'price' => $item['unit_price'],
+                    'subtotal' => $subtotal,
                     'discount' => $item['discount'] ?? 0,
                     'tax_amount' => $item['tax_amount'] ?? 0,
                     'total' => $item['total'],
                     'notes' => $item['notes'] ?? null,
                 ]);
+            }
+
+            // Handle Kardex Logic
+            // 1. If status changed TO 'received', register input
+            if ($originalStatus !== PurchaseOrder::STATUS_RECEIVED && $order->status === PurchaseOrder::STATUS_RECEIVED) {
+                foreach ($validated['items'] as $item) {
+                    Kardex::registerEntry(
+                        $order,
+                        [
+                            'id' => $item['product_id'],
+                            'quantity' => (float) $item['quantity'],
+                            'price' => (float) $item['unit_price'],
+                            'subtotal' => (float) $item['total'],
+                        ],
+                        $order->warehouse_id,
+                        "Purchase Order #{$order->order_number}"
+                    );
+                }
+            }
+            // 2. If status changed FROM 'received' TO 'cancelled', void movement (Exit)
+            elseif ($originalStatus === PurchaseOrder::STATUS_RECEIVED && $order->status === PurchaseOrder::STATUS_CANCELLED) {
+                // For voiding, we need to know what was previously entered.
+                // Since we just deleted items, we might need to rely on the validated items if they match,
+                // OR better, we should have fetched items before delete.
+                // BUT, since we are in a transaction and just recreated them, we can use the validated items
+                // assuming the user didn't change items AND cancel at the same time.
+                // Ideally, voiding should be a separate action or we use the items we just saved.
+
+                foreach ($validated['items'] as $item) {
+                    Kardex::registerExit(
+                        $order,
+                        [
+                            'id' => $item['product_id'],
+                            'quantity' => (float) $item['quantity'],
+                            // Price not needed for exit/void usually, but good to have
+                        ],
+                        $order->warehouse_id,
+                        "VOID Purchase #{$order->order_number}"
+                    );
+                }
             }
         });
 
@@ -224,9 +294,24 @@ class PurchaseOrderController extends Controller
      */
     public function destroy(string $id)
     {
-        $order = PurchaseOrder::findOrFail($id);
-        
+        $order = PurchaseOrder::with('productables')->findOrFail($id);
+
         DB::transaction(function () use ($order) {
+            // If deleting a received order, void movement
+            if ($order->status === PurchaseOrder::STATUS_RECEIVED) {
+                foreach ($order->productables as $item) {
+                    Kardex::registerExit(
+                        $order,
+                        [
+                            'id' => $item->product_id,
+                            'quantity' => (float) $item->quantity,
+                        ],
+                        $order->warehouse_id,
+                        "VOID Purchase #{$order->order_number}"
+                    );
+                }
+            }
+
             $order->productables()->delete();
             $order->delete();
         });

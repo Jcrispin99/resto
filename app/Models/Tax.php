@@ -9,6 +9,8 @@ class Tax extends Model
 {
     use HasFactory;
 
+    protected $table = 'taxes';
+
     protected $fillable = [
         'name',
         'description',
@@ -28,28 +30,9 @@ class Tax extends Model
         'is_default' => 'boolean',
     ];
 
-    /**
-     * Scope for active taxes only.
-     */
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
-    }
-
-    /**
-     * Scope for default tax.
-     */
-    public function scopeDefault($query)
-    {
-        return $query->where('is_default', true)->where('is_active', true);
-    }
-
-    /**
-     * Scope for specific tax type.
-     */
-    public function scopeOfType($query, string $type)
-    {
-        return $query->where('tax_type', $type);
     }
 
     /**
@@ -77,32 +60,4 @@ class Tax extends Model
 
         return $basePrice * (1 + ($this->rate_percent / 100));
     }
-
-    /**
-     * Get tax rate as decimal (for calculations).
-     */
-    public function getRateDecimalAttribute(): float
-    {
-        return $this->rate_percent / 100;
-    }
-
-    /**
-     * Common SUNAT affectation codes.
-     */
-    const AFFECTATION_GRAVADO = '10'; // Gravado - Operación Onerosa
-    const AFFECTATION_EXONERADO = '20'; // Exonerado
-    const AFFECTATION_INAFECTO = '30'; // Inafecto
-    const AFFECTATION_EXPORTACION = '40'; // Exportación
-    const AFFECTATION_GRATUITO = '11'; // Gravado - Retiro por premio
-    const AFFECTATION_GRATUITO_PROMO = '12'; // Gravado - Retiro por donación
-    const AFFECTATION_GRATUITO_PUBLICIDAD = '13'; // Gravado - Retiro por publicidad
-
-    /**
-     * Common tax types.
-     */
-    const TYPE_IGV = 'IGV';
-    const TYPE_ICBPER = 'ICBPER';
-    const TYPE_ISC = 'ISC';
-    const TYPE_RETENCION = 'RETENCION';
-    const TYPE_PERCEPCION = 'PERCEPCION';
 }

@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\ProductProduct;
 use App\Models\ProductTemplate;
-use Illuminate\Support\Facades\DB;
 
 class ProductVariantService
 {
@@ -15,6 +14,7 @@ class ProductVariantService
         // If no attributes, ensure a single default variant exists (or handle as needed)
         if ($attributeLines->isEmpty()) {
             $this->createOrUpdateVariant($template, []);
+
             return;
         }
 
@@ -39,7 +39,7 @@ class ProductVariantService
         // (i.e., variants that have attribute combinations not present in the current configuration)
         // Note: Logic here needs to be careful not to delete variants that just have *different* attributes if we support that.
         // But for a strict template-variant system, usually all variants must match the template configuration.
-        
+
         // Simple approach: Deactivate variants not in the valid list
         $template->products()->whereNotIn('id', $validVariantIds)->update(['is_active' => false]);
     }
@@ -48,10 +48,10 @@ class ProductVariantService
     {
         // Find existing variant with these exact attribute values
         // This is the tricky part. We need to query ProductProduct where it has exactly these attribute_value_product entries.
-        
+
         $variant = $this->findVariantByAttributes($template, $valueIds);
 
-        if (!$variant) {
+        if (! $variant) {
             $variant = ProductProduct::create([
                 'template_id' => $template->id,
                 'sku' => $this->generateSku($template, $valueIds),
@@ -60,12 +60,12 @@ class ProductVariantService
             ]);
 
             // Attach values
-            if (!empty($valueIds)) {
+            if (! empty($valueIds)) {
                 $variant->attributeValues()->attach($valueIds);
             }
         } else {
             // Reactivate if needed
-            if (!$variant->is_active) {
+            if (! $variant->is_active) {
                 $variant->update(['is_active' => true]);
             }
         }
@@ -82,9 +82,9 @@ class ProductVariantService
         // Query for variant that has ALL these values and ONLY these values
         // This can be complex in Eloquent.
         // A common approach is to filter by count and intersection.
-        
+
         $count = count($valueIds);
-        
+
         return ProductProduct::where('template_id', $template->id)
             ->whereHas('attributeValues', function ($q) use ($valueIds) {
                 $q->whereIn('product_attribute_values.id', $valueIds);
@@ -116,10 +116,11 @@ class ProductVariantService
     protected function generateSku(ProductTemplate $template, array $valueIds)
     {
         // Simple SKU generation logic
-        $sku = $template->internal_reference ?? ('PROD-' . $template->id);
-        if (!empty($valueIds)) {
-            $sku .= '-' . implode('-', $valueIds);
+        $sku = $template->internal_reference ?? ('PROD-'.$template->id);
+        if (! empty($valueIds)) {
+            $sku .= '-'.implode('-', $valueIds);
         }
-        return $sku . '-' . uniqid(); // Ensure uniqueness for now
+
+        return $sku.'-'.uniqid(); // Ensure uniqueness for now
     }
 }

@@ -16,6 +16,7 @@ interface Company {
     name: string;
     business_name: string;
     trade_name: string;
+    tax_id?: string;
 }
 
 interface Props {

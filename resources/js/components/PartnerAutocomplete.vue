@@ -14,11 +14,13 @@ interface Props {
     modelValue?: number | null;
     type?: 'suppliers' | 'customers' | null;
     placeholder?: string;
+    initialName?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
     type: null,
     placeholder: 'Search partner by name, code or tax ID...',
+    initialName: '',
 });
 
 const emit = defineEmits<{
@@ -31,6 +33,15 @@ const results = ref<Partner[]>([]);
 const loading = ref(false);
 const showResults = ref(false);
 const selectedPartner = ref<Partner | null>(null);
+
+// Set initial name if provided (for Edit mode)
+if (props.initialName && props.modelValue) {
+    searchQuery.value = props.initialName;
+    selectedPartner.value = {
+        id: props.modelValue,
+        name: props.initialName,
+    };
+}
 
 const searchPartners = debounce(async () => {
     if (searchQuery.value.length < 2) {

@@ -18,9 +18,10 @@ return new class extends Migration
             $table->decimal('quantity', 10, 3);
             $table->decimal('price', 10, 2)->comment('Precio unitario usado');
             $table->decimal('discount', 10, 2)->default(0)->comment('Descuento aplicado');
-            $table->decimal('tax_rate', 8, 2)->default(18.00)->comment('% IGV aplicado');
+            $table->decimal('tax_amount', 10, 2)->default(0)->comment('Monto de impuesto');
             $table->decimal('subtotal', 10, 2)->comment('quantity * price - discount');
             $table->decimal('total', 10, 2)->comment('subtotal + impuestos');
+            $table->text('notes')->nullable();
             $table->timestamps();
 
             // Indexes
