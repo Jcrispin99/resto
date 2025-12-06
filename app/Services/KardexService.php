@@ -39,7 +39,7 @@ class KardexService
         $newTotalBalance = $lastRecord['total'] + ($qty * $unitCost);
         $newCostBalance = $newQuantityBalance > 0 ? $newTotalBalance / $newQuantityBalance : 0;
 
-        $model->inventories()->create([
+        Inventory::create([
             'detail' => $detail,
             'quantity_in' => $qty,
             'cost_in' => $unitCost,
@@ -49,6 +49,8 @@ class KardexService
             'total_balance' => $newTotalBalance,
             'product_id' => $product['id'],
             'warehouse_id' => $warehouse_id,
+            'inventoryable_type' => get_class($model),
+            'inventoryable_id' => $model->id,
         ]);
 
         // Update stock in ProductProduct if needed (optional, but good for quick access)
@@ -74,7 +76,7 @@ class KardexService
         // Cost balance remains the same on exit, unless balance is 0
         $newCostBalance = $newQuantityBalance > 0 ? $newTotalBalance / $newQuantityBalance : $lastRecord['cost'];
 
-        $model->inventories()->create([
+        Inventory::create([
             'detail' => $detail,
             'quantity_out' => $qty,
             'cost_out' => $costOut,
@@ -84,8 +86,57 @@ class KardexService
             'total_balance' => $newTotalBalance,
             'product_id' => $product['id'],
             'warehouse_id' => $warehouse_id,
+            'inventoryable_type' => get_class($model),
+            'inventoryable_id' => $model->id,
         ]);
 
         // ProductProduct::where('id', $product['id'])->decrement('stock', $qty);
+    }
+
+    /**
+     * Register a void/reversal of a previous exit movement.
+     * This is used to reverse sales or exits without affecting weighted average cost.
+     * It uses the original exit cost instead of sale price.
+     *
+     * @param Model $model The model being voided (SaleOrder, etc.)
+     * @param array $product Product data with 'id' and 'quantity'
+     * @param int $warehouse_id Warehouse ID
+     * @param string $detail Description of the void movement
+     * @return void
+     */
+    public function registerVoid(Model $model, array $product, $warehouse_id, $detail)
+    {
+        // Try to find the original exit movement for this model and product
+        $originalExit = Inventory::where('inventoryable_type', get_class($model))
+            ->where('inventoryable_id', $model->id)
+            ->where('product_id', $product['id'])
+            ->where('warehouse_id', $warehouse_id)
+            ->where('quantity_out', '>', 0)
+            ->latest('id')
+            ->first();
+
+        $lastRecord = $this->getLastRecord($product['id'], $warehouse_id);
+        $qty = (float) ($product['quantity'] ?? 0);
+
+        // Use the original exit cost if found, otherwise use current weighted average
+        $costIn = $originalExit ? (float) $originalExit->cost_out : $lastRecord['cost'];
+
+        $newQuantityBalance = $lastRecord['quantity'] + $qty;
+        $newTotalBalance = $lastRecord['total'] + ($qty * $costIn);
+        $newCostBalance = $newQuantityBalance > 0 ? $newTotalBalance / $newQuantityBalance : $lastRecord['cost'];
+
+        Inventory::create([
+            'detail' => $detail,
+            'quantity_in' => $qty,
+            'cost_in' => $costIn,
+            'total_in' => $qty * $costIn,
+            'quantity_balance' => $newQuantityBalance,
+            'cost_balance' => $newCostBalance,
+            'total_balance' => $newTotalBalance,
+            'product_id' => $product['id'],
+            'warehouse_id' => $warehouse_id,
+            'inventoryable_type' => get_class($model),
+            'inventoryable_id' => $model->id,
+        ]);
     }
 }

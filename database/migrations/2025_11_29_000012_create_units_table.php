@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('units', function (Blueprint $table) {
             $table->id();
-            $table->string('code', 10)->unique();
             $table->string('name', 100);
             $table->string('abbreviation', 10);
             $table->string('type', 20)->default('unit'); // weight, volume, length, unit
@@ -21,7 +20,7 @@ return new class extends Migration
             $table->timestamps();
 
             // Indexes
-            $table->index('code');
+            $table->index('abbreviation');
             $table->index('type');
             $table->index('is_active');
         });

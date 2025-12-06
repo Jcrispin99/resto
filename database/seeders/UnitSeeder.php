@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Unit;
+use Illuminate\Database\Seeder;
 
 class UnitSeeder extends Seeder
 {
@@ -13,11 +13,11 @@ class UnitSeeder extends Seeder
     public function run(): void
     {
         $units = [
-            ['code' => 'NIU', 'name' => 'Unidad', 'abbreviation' => 'NIU'],
-            ['code' => 'KGM', 'name' => 'Kilogramo', 'abbreviation' => 'KGM'],
-            ['code' => 'LTR', 'name' => 'Litro', 'abbreviation' => 'LTR'],
-            ['code' => 'MTR', 'name' => 'Metro', 'abbreviation' => 'MTR'],
-            ['code' => 'ZZ', 'name' => 'Servicio', 'abbreviation' => 'ZZ'],
+            ['name' => 'Unidad', 'abbreviation' => 'NIU'],
+            ['name' => 'Kilogramo', 'abbreviation' => 'KGM'],
+            ['name' => 'Litro', 'abbreviation' => 'LTR'],
+            ['name' => 'Metro', 'abbreviation' => 'MTR'],
+            ['name' => 'Servicio', 'abbreviation' => 'ZZ'],
         ];
 
         foreach ($units as $unit) {

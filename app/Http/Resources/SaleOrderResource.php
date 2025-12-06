@@ -41,10 +41,11 @@ class SaleOrderResource extends JsonResource
                     return [
                         'id' => $item->id,
                         'product_id' => $item->product_id,
-                        'product_name' => $item->product?->template?->name ?? 'Unknown',
+                        'product_name' => $item->product?->name ?? 'Unknown',
                         'quantity' => $item->quantity,
-                        'unit_price' => $item->unit_price,
+                        'unit_price' => $item->price,
                         'discount' => $item->discount ?? 0,
+                        'tax_id' => $item->tax_id,
                         'tax_amount' => $item->tax_amount ?? 0,
                         'total' => $item->total,
                         'notes' => $item->notes,

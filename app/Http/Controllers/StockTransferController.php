@@ -91,9 +91,10 @@ class StockTransferController extends Controller
                 $transfer->productables()->create([
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
-                    'unit_price' => 0, // Transfers don't have prices
+                    'price' => 0, // Transfers don't have prices
                     'discount' => 0,
                     'tax_amount' => 0,
+                    'subtotal' => 0,
                     'total' => 0,
                     'notes' => $item['notes'] ?? null,
                 ]);
@@ -204,9 +205,10 @@ class StockTransferController extends Controller
                 $transfer->productables()->create([
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
-                    'unit_price' => 0,
+                    'price' => 0,
                     'discount' => 0,
                     'tax_amount' => 0,
+                    'subtotal' => 0,
                     'total' => 0,
                     'notes' => $item['notes'] ?? null,
                 ]);

@@ -41,6 +41,7 @@ interface OrderItem {
     tax_id: number | null;
     tax_amount: number;
     total: number;
+    notes: string;
 }
 
 interface Props {
@@ -106,6 +107,7 @@ if (form.items.length === 0) {
         tax_id: defaultTaxId.value,
         tax_amount: 0,
         total: 0,
+        notes: '',
     });
 }
 
@@ -119,6 +121,7 @@ const addItem = () => {
         tax_id: defaultTaxId.value,
         tax_amount: 0,
         total: 0,
+        notes: '',
     });
 };
 
@@ -362,8 +365,19 @@ const submit = () => {
                                     <!-- Tax -->
                                     <div class="col-span-2">
                                         <Label class="text-xs">Tax</Label>
-                                        <Input type="number" v-model.number="item.tax_amount" 
-                                               class="h-9" step="0.01" min="0" />
+                                        <Select v-model="item.tax_id" @update:modelValue="calculateItemTotal(index)">
+                                            <SelectTrigger class="h-9">
+                                                <SelectValue placeholder="Select Tax" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem v-for="tax in taxes" :key="tax.id" :value="tax.id">
+                                                    {{ tax.invoice_label || tax.name }}
+                                                </SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <div class="text-xs text-gray-500 mt-1 text-right">
+                                            {{ item.tax_amount.toFixed(2) }}
+                                        </div>
                                     </div>
 
                                     <!-- Total -->

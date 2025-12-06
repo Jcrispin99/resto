@@ -150,17 +150,18 @@ class SaleOrderController extends Controller
             ->with('success', 'Sale order created successfully.');
     }
 
-    // ... edit method unchanged ...
     public function edit(string $id)
     {
         $order = SaleOrder::with(['items.product.template'])->findOrFail($id);
         $branches = Company::branches()->active()->get();
         $warehouses = Warehouse::active()->get();
+        $taxes = \App\Models\Tax::active()->get();
 
         return Inertia::render('SaleOrders/Edit', [
             'order' => new SaleOrderResource($order),
             'branches' => \App\Http\Resources\CompanyResource::collection($branches),
             'warehouses' => \App\Http\Resources\WarehouseResource::collection($warehouses),
+            'taxes' => $taxes,
         ]);
     }
 
@@ -264,27 +265,15 @@ class SaleOrderController extends Controller
                     );
                 }
             }
-            // 2. If status changed FROM 'delivered' TO 'cancelled', void movement (Entry)
+            // 2. If status changed FROM 'delivered' TO 'cancelled', void movement
             elseif ($originalStatus === SaleOrder::STATUS_DELIVERED && $order->status === SaleOrder::STATUS_CANCELLED) {
                 foreach ($validated['items'] as $item) {
-                    // For voiding a sale, we register an Entry (return to stock)
-                    // We use the price from the item, though for weighted average it might use current cost logic
-                    // depending on strictness. Here we just return quantity.
-                    Kardex::registerEntry(
+                    // Use registerVoid to return stock using original exit cost
+                    Kardex::registerVoid(
                         $order,
                         [
                             'id' => $item['product_id'],
                             'quantity' => (float) $item['quantity'],
-                            'price' => (float) $item['unit_price'], // Return at sales price? Or cost?
-                            // Usually returns should be at cost, but we don't have original cost easily here.
-                            // The service handles cost calculation for entries.
-                            // If we pass price, it might affect average cost if we are not careful.
-                            // However, for voiding, we ideally want to reverse exactly.
-                            // But since we are using the generic 'registerEntry', it will treat it as a new purchase/entry.
-                            // This is a limitation of the generic pattern vs the specific 'void' method.
-                            // We will proceed with passing 0 or null for price to avoid messing up average cost too much,
-                            // OR we accept that voiding = new entry at current value.
-                            // Let's pass the unit_price for now as it's required by the signature structure.
                         ],
                         $order->warehouse_id,
                         "VOID Sale #{$order->order_number}"
@@ -308,15 +297,14 @@ class SaleOrderController extends Controller
             // If deleting a delivered order, void movement
             if ($order->status === SaleOrder::STATUS_DELIVERED) {
                 foreach ($order->items as $item) {
-                    Kardex::registerEntry(
+                    Kardex::registerVoid(
                         $order,
                         [
                             'id' => $item->product_id,
                             'quantity' => (float) $item->quantity,
-                            'price' => (float) $item->unit_price,
                         ],
                         $order->warehouse_id,
-                        "VOID Sale #{$order->order_number}"
+                        "VOID DELETED Sale #{$order->order_number}"
                     );
                 }
             }
