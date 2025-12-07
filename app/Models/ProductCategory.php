@@ -13,6 +13,7 @@ class ProductCategory extends Model
 
     protected $fillable = [
         'parent_id',
+        'type',
         'name',
         'full_name',
         'is_active',
@@ -98,5 +99,21 @@ class ProductCategory extends Model
     public function scopeRoot($query)
     {
         return $query->whereNull('parent_id');
+    }
+
+    /**
+     * Scope for inventory categories.
+     */
+    public function scopeInventory($query)
+    {
+        return $query->where('type', 'inventory');
+    }
+
+    /**
+     * Scope for menu/POS categories.
+     */
+    public function scopeMenu($query)
+    {
+        return $query->where('type', 'menu');
     }
 }

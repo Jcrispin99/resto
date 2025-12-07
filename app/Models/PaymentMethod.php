@@ -11,12 +11,15 @@ class PaymentMethod extends Model
     use HasFactory;
 
     protected $fillable = [
+        'code',
         'name',
         'type',
+        'requires_reference',
         'is_active',
     ];
 
     protected $casts = [
+        'requires_reference' => 'boolean',
         'is_active' => 'boolean',
     ];
 

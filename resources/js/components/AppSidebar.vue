@@ -22,9 +22,17 @@ import stockTransfers from '@/routes/stock-transfers';
 import productCategories from '@/routes/product-categories';
 import productAttributes from '@/routes/product-attributes';
 import productTemplates from '@/routes/product-templates';
+import recipes from '@/routes/recipes';
+import combos from '@/routes/combos';
+import paymentMethods from '@/routes/payment-methods';
+import posTerminals from '@/routes/pos-terminals';
+import cashRegisters from '@/routes/cash-registers';
+import tableAreas from '@/routes/table-areas';
+import tables from '@/routes/tables';
+import reservations from '@/routes/reservations';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Tag, Package, Building2, Warehouse, Ruler, Users, ShoppingCart, TrendingUp, ArrowRightLeft } from 'lucide-vue-next';
+import { BookOpen, Folder, LayoutGrid, Tag, Package, Building2, Warehouse, Ruler, Users, ShoppingCart, TrendingUp, ArrowRightLeft, ChefHat, Gift, CreditCard, Monitor, Wallet, UtensilsCrossed, Calendar } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
@@ -81,7 +89,47 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Product Attributes',
         href: productAttributes.index.url(),
-        icon: Tag,
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Recipes',
+        href: recipes.index.url(),
+        icon: ChefHat,
+    },
+    {
+        title: 'Combos',
+        href: combos.index.url(),
+        icon: Gift,
+    },
+    {
+        title: 'Payment Methods',
+        href: paymentMethods.index.url(),
+        icon: CreditCard,
+    },
+    {
+        title: 'POS Terminals',
+        href: posTerminals.index.url(),
+        icon: Monitor,
+    },
+    {
+        title: 'Cash Registers',
+        href: cashRegisters.index.url(),
+        icon: Wallet,
+    },
+    {
+        title: 'Table Areas',
+        href: tableAreas.index.url(),
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Tables',
+        href: tables.index.url(),
+        icon: UtensilsCrossed,
+    },
+    {
+        title: 'Reservations',
+        href: reservations.index.url(),
+        icon: Calendar,
     },
 ];
 

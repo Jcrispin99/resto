@@ -89,7 +89,7 @@ class ProductTemplate extends Model
     }
 
     /**
-     * Get menu settings (1:1).
+     * Get the menu settings for this product.
      */
     public function menuSettings()
     {
@@ -97,19 +97,18 @@ class ProductTemplate extends Model
     }
 
     /**
-     * Get images (polymorphic).
+     * Get the recipes (ingredients) for this product.
      */
-    public function images(): MorphMany
+    public function recipes()
     {
-        return $this->morphMany(Imageable::class, 'imageable');
+        return $this->hasMany(Recipe::class, 'product_template_id');
     }
 
     /**
-     * Get recipes (ingredients for this dish).
-     */
-    public function recipes(): HasMany
+     * Get images (polymorphic).\n     */
+    public function images(): MorphMany
     {
-        return $this->hasMany(Recipe::class, 'product_template_id');
+        return $this->morphMany(Imageable::class, 'imageable');
     }
 
     /**

@@ -54,6 +54,16 @@ class CashRegister extends Model
         return $this->hasMany(CashMovement::class);
     }
 
+    public function scopeOpen($query)
+    {
+        return $query->where('status', self::STATUS_OPEN);
+    }
+
+    public function scopeClosed($query)
+    {
+        return $query->where('status', self::STATUS_CLOSED);
+    }
+
     const STATUS_OPEN = 'open';
 
     const STATUS_CLOSED = 'closed';

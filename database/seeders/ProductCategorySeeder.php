@@ -2,88 +2,56 @@
 
 namespace Database\Seeders;
 
+use App\Models\ProductCategory;
 use Illuminate\Database\Seeder;
 
 class ProductCategorySeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Run the database seeder.
      */
     public function run(): void
     {
-        // 1. Bebidas
-        $bebidas = \App\Models\ProductCategory::create([
-            'name' => 'Bebidas',
-            'is_active' => true,
-        ]);
+        // ========================================
+        // CATEGORÍAS DE MENÚ/POS
+        // ========================================
+        
+        $menuCategories = [
+            ['name' => 'Bebidas', 'type' => 'menu'],
+            ['name' => 'Entradas', 'type' => 'menu'],
+            ['name' => 'Platos Principales', 'type' => 'menu'],
+            ['name' => 'Postres', 'type' => 'menu'],
+            ['name' => 'Guarniciones', 'type' => 'menu'],
+            ['name' => 'Sandwiches', 'type' => 'menu'],
+            ['name' => 'Ensaladas', 'type' => 'menu'],
+        ];
 
-        // Subcategorías de Bebidas
-        \App\Models\ProductCategory::create([
-            'parent_id' => $bebidas->id,
-            'name' => 'Gaseosas',
-            'is_active' => true,
-        ]);
+        foreach ($menuCategories as $category) {
+            ProductCategory::create([
+                'name' => $category['name'],
+                'type' => $category['type'],
+                'is_active' => true,
+            ]);
+        }
 
-        \App\Models\ProductCategory::create([
-            'parent_id' => $bebidas->id,
-            'name' => 'Cervezas',
-            'is_active' => true,
-        ]);
+        // ========================================
+        // CATEGORÍAS DE INVENTARIO
+        // ========================================
+        
+        $inventoryCategories = [
+            ['name' => 'Materias Primas', 'type' => 'inventory'],
+            ['name' => 'Insumos', 'type' => 'inventory'],
+            ['name' => 'Suministros', 'type' => 'inventory'],
+            ['name' => 'Productos de Limpieza', 'type' => 'inventory'],
+            ['name' => 'Empaques y Embalajes', 'type' => 'inventory'],
+        ];
 
-        // 2. Carnes y Aves
-        $carnes = \App\Models\ProductCategory::create([
-            'name' => 'Carnes y Aves',
-            'is_active' => true,
-        ]);
-
-        \App\Models\ProductCategory::create([
-            'parent_id' => $carnes->id,
-            'name' => 'Res',
-            'is_active' => true,
-        ]);
-
-        \App\Models\ProductCategory::create([
-            'parent_id' => $carnes->id,
-            'name' => 'Pollo',
-            'is_active' => true,
-        ]);
-
-        // 3. Verduras y Frutas
-        \App\Models\ProductCategory::create([
-            'name' => 'Verduras y Frutas',
-            'is_active' => true,
-        ]);
-
-        // 4. Lácteos
-        $lacteos = \App\Models\ProductCategory::create([
-            'name' => 'Lácteos',
-            'is_active' => true,
-        ]);
-
-        \App\Models\ProductCategory::create([
-            'parent_id' => $lacteos->id,
-            'name' => 'Quesos',
-            'is_active' => true,
-        ]);
-
-        // 5. Abarrotes
-        $abarrotes = \App\Models\ProductCategory::create([
-            'name' => 'Abarrotes',
-            'is_active' => true,
-        ]);
-
-        \App\Models\ProductCategory::create([
-            'parent_id' => $abarrotes->id,
-            'name' => 'Pastas',
-            'is_active' => true,
-        ]);
-
-        \App\Models\ProductCategory::create([
-            'parent_id' => $abarrotes->id,
-            'name' => 'Condimentos',
-            'is_active' => true,
-        ]);
-
-        $this->command->info('✅ Created 5 main product categories with subcategories');
+        foreach ($inventoryCategories as $category) {
+            ProductCategory::create([
+                'name' => $category['name'],
+                'type' => $category['type'],
+                'is_active' => true,
+            ]);
+        }
     }
 }

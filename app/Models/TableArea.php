@@ -24,7 +24,7 @@ class TableArea extends Model
 
     public function branch(): BelongsTo
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Company::class, 'branch_id');
     }
 
     public function tables(): HasMany

@@ -34,7 +34,7 @@ class Reservation extends Model
 
     public function branch(): BelongsTo
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Company::class, 'branch_id');
     }
 
     public function partner(): BelongsTo
@@ -45,6 +45,28 @@ class Reservation extends Model
     public function table(): BelongsTo
     {
         return $this->belongsTo(Table::class);
+    }
+
+    // Scopes
+    public function scopePending($query)
+    {
+        return $query->where('status', self::STATUS_PENDING);
+    }
+
+    public function scopeConfirmed($query)
+    {
+        return $query->where('status', self::STATUS_CONFIRMED);
+    }
+
+    public function scopeToday($query)
+    {
+        return $query->whereDate('reservation_date', today());
+    }
+
+    public function scopeUpcoming($query)
+    {
+        return $query->where('reservation_date', '>=', today())
+                     ->whereNotIn('status', [self::STATUS_CANCELLED, self::STATUS_NO_SHOW, self::STATUS_COMPLETED]);
     }
 
     // Status constants

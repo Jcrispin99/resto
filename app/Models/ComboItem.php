@@ -25,7 +25,7 @@ class ComboItem extends Model
     ];
 
     /**
-     * Get the combo.
+     * Get the combo this item belongs to.
      */
     public function combo(): BelongsTo
     {
@@ -33,9 +33,9 @@ class ComboItem extends Model
     }
 
     /**
-     * Get the product.
+     * Get the product template for this combo item.
      */
-    public function productTemplate(): BelongsTo
+    public function product(): BelongsTo
     {
         return $this->belongsTo(ProductTemplate::class, 'product_template_id');
     }

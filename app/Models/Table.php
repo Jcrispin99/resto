@@ -14,19 +14,20 @@ class Table extends Model
     protected $fillable = [
         'branch_id',
         'area_id',
-        'table_number',
-        'name',
+        'number',
         'capacity',
-        'status',
+        'qr_code',
+        'is_active',
     ];
 
     protected $casts = [
         'capacity' => 'integer',
+        'is_active' => 'boolean',
     ];
 
     public function branch(): BelongsTo
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Company::class, 'branch_id');
     }
 
     public function area(): BelongsTo
@@ -44,14 +45,8 @@ class Table extends Model
         return $this->hasMany(Reservation::class);
     }
 
-    public function scopeAvailable($query)
+    public function scopeActive($query)
     {
-        return $query->where('status', self::STATUS_AVAILABLE);
+        return $query->where('is_active', true);
     }
-
-    // Status constants
-    const STATUS_AVAILABLE = 'available';
-    const STATUS_OCCUPIED = 'occupied';
-    const STATUS_RESERVED = 'reserved';
-    const STATUS_CLEANING = 'cleaning';
 }

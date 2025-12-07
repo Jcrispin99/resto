@@ -29,7 +29,29 @@ Route::middleware([
     Route::resource('product-categories', \App\Http\Controllers\ProductCategoryController::class);
     Route::resource('product-attributes', \App\Http\Controllers\ProductAttributeController::class);
     Route::resource('product-templates', \App\Http\Controllers\ProductTemplateController::class);
+    
+    // Recipes & Combos
+    Route::resource('recipes', \App\Http\Controllers\RecipeController::class);
+    Route::get('/recipes/calculate-cost/{productTemplate}', [\App\Http\Controllers\RecipeController::class, 'calculateCost']);
+    Route::resource('combos', \App\Http\Controllers\ComboController::class);
 
+    // POS Management
+    Route::resource('payment-methods', \App\Http\Controllers\PaymentMethodController::class);
+    Route::resource('pos-terminals', \App\Http\Controllers\PosTerminalController::class);
+    Route::resource('cash-registers', \App\Http\Controllers\CashRegisterController::class)->except(['edit', 'update']);
+    Route::post('/cash-registers/{cashRegister}/close', [\App\Http\Controllers\CashRegisterController::class, 'close'])->name('cash-registers.close');
+    Route::post('/cash-registers/{cashRegister}/add-movement', [\App\Http\Controllers\CashRegisterController::class, 'addMovement'])->name('cash-registers.add-movement');
+
+    // Tables & Reservations
+    Route::resource('table-areas', \App\Http\Controllers\TableAreaController::class);
+    Route::resource('tables', \App\Http\Controllers\TableController::class);
+    Route::post('/tables/{table}/update-status', [\App\Http\Controllers\TableController::class, 'updateStatus'])->name('tables.update-status');
+    Route::resource('reservations', \App\Http\Controllers\ReservationController::class);
+    Route::post('/reservations/{reservation}/confirm', [\App\Http\Controllers\ReservationController::class, 'confirm'])->name('reservations.confirm');
+    Route::post('/reservations/{reservation}/seat', [\App\Http\Controllers\ReservationController::class, 'seat'])->name('reservations.seat');
+    Route::post('/reservations/{reservation}/cancel', [\App\Http\Controllers\ReservationController::class, 'cancel'])->name('reservations.cancel');
+    Route::post('/reservations/{reservation}/no-show', [\App\Http\Controllers\ReservationController::class, 'noShow'])->name('reservations.no-show');
+    
     // API routes for autocomplete/search
     Route::get('/api/products/search', [\App\Http\Controllers\ProductSearchController::class, 'search']);
     Route::get('/api/partners/search', [\App\Http\Controllers\PartnerController::class, 'search']);
