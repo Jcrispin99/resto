@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -14,17 +13,26 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            // Base data
             BranchManagementSeeder::class,
             WarehouseSeeder::class,
             UnitSeeder::class,
-            ProductCategorySeeder::class,
+            ProductCategoriesFullSeeder::class,
             TaxSeeder::class,
             PartnerSeeder::class,
-            ProductSeeder::class,
+
+            // POS Infrastructure (must be before products)
+            RolesAndPermissionsSeeder::class,
+            PosUsersSeeder::class,
+            PosTablesSeeder::class,
+            PaymentMethodsSeeder::class,
+            KitchenStationsSeeder::class, // Before MenuProductsSeeder
+
+            // Products (after stations)
+            MenuProductsSeeder::class,
         ]);
 
-        // User::factory(10)->create();
-
+        // Default admin user
         User::firstOrCreate(
             ['email' => 'admin@gmail.com'],
             [

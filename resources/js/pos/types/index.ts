@@ -1,14 +1,15 @@
 // ========================
 // User & Auth Types
 // ========================
-
-export type UserRole = 'waiter' | 'cashier' | 'admin';
+// User types
+export type UserRole = 'admin' | 'cashier' | 'waiter';
 
 export interface User {
     id: number;
     name: string;
     email: string;
-    role: UserRole;
+    roles: string[];       // Spatie roles: ['admin', 'cashier', 'waiter', etc.]
+    permissions: string[]; // Spatie permissions: ['pos.orders.create', etc.]
     branch_id?: number;
 }
 

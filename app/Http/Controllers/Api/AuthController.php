@@ -37,11 +37,21 @@ class AuthController extends Controller
         // Crear token
         $token = $user->createToken($deviceName)->plainTextToken;
 
+        // Get user roles and permissions
+        $roles = $user->getRoleNames()->toArray();
+        $permissions = $user->getAllPermissions()->pluck('name')->toArray();
+
         return response()->json([
             'success' => true,
             'message' => 'Login exitoso',
             'data' => [
-                'user' => $user,
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'roles' => $roles,
+                    'permissions' => $permissions,
+                ],
                 'token' => $token,
             ],
         ]);

@@ -14,6 +14,9 @@ return new class extends Migration
         Schema::create('product_categories', function (Blueprint $table) {
             $table->id();
             $table->foreignId('parent_id')->nullable()->constrained('product_categories')->onDelete('cascade');
+            $table->enum('type', ['inventory', 'menu'])
+                ->default('menu')
+                ->comment('inventory = categoría de inventario, menu = categoría de menú/POS');
             $table->string('name', 100);
             $table->string('full_name', 500)->nullable();
             $table->boolean('is_active')->default(true);
@@ -21,6 +24,7 @@ return new class extends Migration
 
             // Indexes
             $table->index('parent_id');
+            $table->index('type');
             $table->index('full_name');
             $table->index('is_active');
         });

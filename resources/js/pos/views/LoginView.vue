@@ -1,233 +1,134 @@
 <template>
-    <div class="login-view">
-        <div class="login-container">
-            <!-- Logo y Título -->
+    <div class="login-container">
+        <div class="login-box">
             <div class="login-header">
-                <div class="logo-large">🍽️</div>
-                <h1 class="title">POS Restaurant</h1>
-                <p class="subtitle">Sistema de Punto de Venta</p>
+                <h1 class="login-title">🍽️ POS Restaurant</h1>
+                <p class="login-subtitle">Ingresa tus credenciales</p>
             </div>
 
-            <!-- Formulario de Login -->
             <form @submit.prevent="handleLogin" class="login-form">
                 <div class="form-group">
-                    <label for="email" class="form-label">
-                        <span class="label-icon">📧</span>
-                        Correo Electrónico
-                    </label>
+                    <label for="email">Email</label>
                     <input
                         id="email"
                         v-model="email"
                         type="email"
+                        placeholder="usuario@pos.com"
                         required
-                        autocomplete="email"
-                        placeholder="usuario@ejemplo.com"
-                        class="form-input"
                         :disabled="isLoading"
                     />
                 </div>
 
                 <div class="form-group">
-                    <label for="password" class="form-label">
-                        <span class="label-icon">🔒</span>
-                        Contraseña
-                    </label>
+                    <label for="password">Contraseña</label>
                     <input
                         id="password"
                         v-model="password"
                         type="password"
+                        placeholder="••••••"
                         required
-                        autocomplete="current-password"
-                        placeholder="••••••••"
-                        class="form-input"
                         :disabled="isLoading"
                     />
                 </div>
 
-                <!-- Error Message -->
-                <div v-if="errorMessage" class="error-message">
-                    ⚠️ {{ errorMessage }}
+                <div v-if="error" class="error-message">
+                    ❌ {{ error }}
                 </div>
 
-                <!-- Login Button -->
-                <button
-                    type="submit"
-                    class="btn-login"
-                    :disabled="isLoading"
-                    :class="{ 'is-loading': isLoading }"
-                >
-                    <span v-if="!isLoading">Iniciar Sesión</span>
-                    <span v-else class="loading-content">
-                        <span class="spinner"></span>
-                        Ingresando...
-                    </span>
+                <button type="submit" class="btn-login" :disabled="isLoading">
+                    <span v-if="!isLoading">Ingresar</span>
+                    <span v-else class="spinner"></span>
                 </button>
             </form>
 
-            <!-- Demo Credentials -->
+            <!-- Demo users -->
             <div class="demo-section">
-                <p class="demo-title">👤 Usuarios Demo</p>
-                <div class="demo-users">
-                    <button 
-                        type="button" 
-                        @click="setCredentials('mozo@demo.com')" 
-                        class="demo-btn demo-waiter"
-                        :disabled="isLoading"
-                    >
-                        <span class="demo-icon">🍽️</span>
-                        <span class="demo-role">Mozo</span>
-                        <span class="demo-email">mozo@demo.com</span>
+                <p class="demo-title">👤 Usuarios de prueba:</p>
+                <div class="demo-buttons">
+                    <button @click="fillDemo('mozo@pos.com')" class="demo-btn waiter">
+                        🍽️ Mozo
                     </button>
-                    <button 
-                        type="button" 
-                        @click="setCredentials('cajero@demo.com')" 
-                        class="demo-btn demo-cashier"
-                        :disabled="isLoading"
-                    >
-                        <span class="demo-icon">💳</span>
-                        <span class="demo-role">Cajero</span>
-                        <span class="demo-email">cajero@demo.com</span>
+                    <button @click="fillDemo('cajero@pos.com')" class="demo-btn cashier">
+                        💳 Cajero
                     </button>
-                    <button 
-                        type="button" 
-                        @click="setCredentials('admin@demo.com')" 
-                        class="demo-btn demo-admin"
-                        :disabled="isLoading"
-                    >
-                        <span class="demo-icon">👑</span>
-                        <span class="demo-role">Admin</span>
-                        <span class="demo-email">admin@demo.com</span>
+                    <button @click="fillDemo('admin@pos.com')" class="demo-btn admin">
+                        👑 Admin
                     </button>
                 </div>
-                <p class="demo-password">Contraseña: <code>123456</code></p>
+                <p class="demo-hint">Contraseña: 123456</p>
             </div>
         </div>
-
-        <!-- Background Decoration -->
-        <div class="background-decoration"></div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { useAuthStore } from '@pos/stores/auth';
 
 const router = useRouter();
-const route = useRoute();
 const authStore = useAuthStore();
 
-const email = ref('mozo@demo.com');
+const email = ref('');
 const password = ref('123456');
-const isLoading = ref(false);
-const errorMessage = ref('');
 
-function setCredentials(userEmail: string) {
-    email.value = userEmail;
+const isLoading = computed(() => authStore.isLoading);
+const error = computed(() => authStore.error);
+
+function fillDemo(demoEmail: string) {
+    email.value = demoEmail;
     password.value = '123456';
-    errorMessage.value = '';
 }
 
 async function handleLogin() {
-    if (isLoading.value) return;
+    const success = await authStore.login(email.value, password.value);
 
-    isLoading.value = true;
-    errorMessage.value = '';
-
-    try {
-        await authStore.login(email.value, password.value);
-        
+    if (success) {
         // Redirect based on role
         if (authStore.isWaiter) {
-            router.push('/pos/tables');
+            router.push({ name: 'tables' });
         } else if (authStore.isCashier) {
-            router.push('/pos/cashier');
+            router.push({ name: 'cashier' });
         } else {
-            // Admin - go to intended page or tables
-            const redirectTo = route.query.redirect as string || '/pos/tables';
-            router.push(redirectTo);
+            router.push({ name: 'tables' }); // Admin goes to tables
         }
-    } catch (error: any) {
-        console.error('Login failed:', error);
-        errorMessage.value = error.message || 'Error al iniciar sesión';
-    } finally {
-        isLoading.value = false;
     }
 }
 </script>
 
 <style scoped>
-.login-view {
-    width: 100vw;
-    height: 100vh;
+.login-container {
+    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
-    overflow: hidden;
-    background: linear-gradient(135deg, rgb(59 130 246) 0%, rgb(79 70 229) 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 1rem;
 }
 
-.background-decoration {
-    position: absolute;
-    inset: 0;
-    opacity: 0.1;
-    background-image: 
-        radial-gradient(circle at 20% 50%, white 1px, transparent 1px),
-        radial-gradient(circle at 80% 80%, white 1px, transparent 1px);
-    background-size: 50px 50px;
-}
-
-.login-container {
+.login-box {
     background: white;
     border-radius: 1rem;
-    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    padding: 2.5rem;
     width: 100%;
-    max-width: 28rem;
-    margin: 0 1rem;
-    padding: 2rem;
-    position: relative;
-    z-index: 10;
-    animation: fadeIn 0.5s ease-out;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    max-width: 400px;
+    box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
 }
 
 .login-header {
     text-align: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
 }
 
-.logo-large {
-    font-size: 3.5rem;
-    margin-bottom: 0.5rem;
-    animation: bounce 2s ease-in-out infinite;
-}
-
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
-
-.title {
-    font-size: 1.75rem;
+.login-title {
+    font-size: 2rem;
     font-weight: 700;
     color: #1f2937;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.5rem;
 }
 
-.subtitle {
+.login-subtitle {
     color: #6b7280;
-    font-size: 0.875rem;
 }
 
 .login-form {
@@ -239,92 +140,61 @@ async function handleLogin() {
 .form-group {
     display: flex;
     flex-direction: column;
-    gap: 0.375rem;
+    gap: 0.5rem;
 }
 
-.form-label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+.form-group label {
     font-size: 0.875rem;
     font-weight: 500;
     color: #374151;
 }
 
-.label-icon {
-    font-size: 1rem;
-}
-
-.form-input {
-    width: 100%;
+.form-group input {
     padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
     border: 2px solid #e5e7eb;
-    transition: all 0.2s;
+    border-radius: 0.5rem;
     font-size: 1rem;
+    transition: border-color 0.2s;
 }
 
-.form-input:focus {
+.form-group input:focus {
     outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: #667eea;
 }
 
-.form-input:disabled {
-    background-color: #f3f4f6;
-    cursor: not-allowed;
+.form-group input:disabled {
+    background: #f9fafb;
 }
 
 .error-message {
-    background-color: #fef2f2;
-    border: 2px solid #fecaca;
-    color: #b91c1c;
-    padding: 0.75rem 1rem;
+    padding: 0.75rem;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
     border-radius: 0.5rem;
+    color: #dc2626;
     font-size: 0.875rem;
-    font-weight: 500;
-    animation: shake 0.5s;
-}
-
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-10px); }
-    75% { transform: translateX(10px); }
 }
 
 .btn-login {
-    width: 100%;
     padding: 0.875rem;
-    border-radius: 0.5rem;
-    background-color: #2563eb;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    font-weight: 600;
-    font-size: 1rem;
-    transition: all 0.2s;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
     border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
     cursor: pointer;
-    min-height: 48px;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .btn-login:hover:not(:disabled) {
-    background-color: #1d4ed8;
-}
-
-.btn-login:active:not(:disabled) {
-    transform: scale(0.98);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgb(102 126 234 / 0.4);
 }
 
 .btn-login:disabled {
-    opacity: 0.5;
+    opacity: 0.6;
     cursor: not-allowed;
-}
-
-.loading-content {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
 }
 
 .spinner {
@@ -341,116 +211,69 @@ async function handleLogin() {
     to { transform: rotate(360deg); }
 }
 
-/* Demo Section */
 .demo-section {
-    margin-top: 1.5rem;
+    margin-top: 2rem;
     padding-top: 1.5rem;
     border-top: 1px solid #e5e7eb;
+    text-align: center;
 }
 
 .demo-title {
-    text-align: center;
     font-size: 0.875rem;
-    font-weight: 600;
     color: #6b7280;
     margin-bottom: 0.75rem;
 }
 
-.demo-users {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+.demo-buttons {
+    display: flex;
     gap: 0.5rem;
+    justify-content: center;
 }
 
 .demo-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.75rem 0.5rem;
+    padding: 0.5rem 1rem;
+    border: 2px solid;
     border-radius: 0.5rem;
-    border: 2px solid #e5e7eb;
-    background: white;
+    font-size: 0.875rem;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
+    background: white;
 }
 
-.demo-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-}
-
-.demo-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.demo-waiter:hover:not(:disabled) {
+.demo-btn.waiter {
     border-color: #10b981;
-    background: #f0fdf4;
+    color: #10b981;
 }
 
-.demo-cashier:hover:not(:disabled) {
+.demo-btn.waiter:hover {
+    background: #10b981;
+    color: white;
+}
+
+.demo-btn.cashier {
     border-color: #3b82f6;
-    background: #eff6ff;
+    color: #3b82f6;
 }
 
-.demo-admin:hover:not(:disabled) {
+.demo-btn.cashier:hover {
+    background: #3b82f6;
+    color: white;
+}
+
+.demo-btn.admin {
     border-color: #f59e0b;
-    background: #fffbeb;
+    color: #f59e0b;
 }
 
-.demo-icon {
-    font-size: 1.5rem;
+.demo-btn.admin:hover {
+    background: #f59e0b;
+    color: white;
 }
 
-.demo-role {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #374151;
-}
-
-.demo-email {
-    font-size: 0.625rem;
-    color: #9ca3af;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-}
-
-.demo-password {
-    text-align: center;
+.demo-hint {
     font-size: 0.75rem;
     color: #9ca3af;
-    margin-top: 0.75rem;
-}
-
-.demo-password code {
-    background: #f3f4f6;
-    padding: 0.125rem 0.375rem;
-    border-radius: 0.25rem;
-    font-family: monospace;
-}
-
-@media (max-width: 640px) {
-    .login-container {
-        padding: 1.5rem;
-    }
-    
-    .title {
-        font-size: 1.5rem;
-    }
-    
-    .demo-users {
-        grid-template-columns: 1fr;
-    }
-    
-    .demo-btn {
-        flex-direction: row;
-        justify-content: flex-start;
-        gap: 0.75rem;
-        padding: 0.75rem 1rem;
-    }
+    margin-top: 0.5rem;
 }
 </style>

@@ -101,7 +101,7 @@ const router = createRouter({
 });
 
 // Flag to disable auth check during development
-const AUTH_REQUIRED = false; // TODO: Set to true for production
+const AUTH_REQUIRED = true; // Set to false for development without auth
 
 // Navigation guard
 router.beforeEach((to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {

@@ -17,34 +17,6 @@ Route::post('/login', [AuthController::class, 'login']);
 
 /*
 |--------------------------------------------------------------------------
-| POS Routes (Temporarily Public for Development)
-| TODO: Move back inside auth:sanctum middleware for production
-|--------------------------------------------------------------------------
-*/
-Route::prefix('pos')->name('pos.')->group(function () {
-    // Tables & Areas
-    Route::get('/tables', [PosController::class, 'tables']);
-    Route::get('/table-areas', [PosController::class, 'tableAreas']);
-    
-    // Products & Categories
-    Route::get('/categories', [PosController::class, 'categories']);
-    Route::get('/products', [PosController::class, 'products']);
-    
-    // Orders
-    Route::post('/orders', [PosController::class, 'createOrder']);
-    Route::get('/orders/{order}', [PosController::class, 'showOrder']);
-    Route::post('/orders/{order}/items', [PosController::class, 'addItems']);
-    Route::delete('/orders/{order}/items/{item}', [PosController::class, 'removeItem']);
-    
-    // Payments
-    Route::get('/payment-methods', [PosController::class, 'paymentMethods']);
-    Route::post('/orders/{order}/payment', [PosController::class, 'processPayment']);
-    Route::patch('/orders/{order}/close', [PosController::class, 'closeOrder']);
-    Route::get('/pending-payments', [PosController::class, 'getPendingPayments']);
-});
-
-/*
-|--------------------------------------------------------------------------
 | Protected Routes (Require Authentication)
 |--------------------------------------------------------------------------
 */
@@ -60,6 +32,32 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout-all', [AuthController::class, 'logoutAll']);
     Route::post('/refresh-token', [AuthController::class, 'refresh']);
     
+    /*
+    |--------------------------------------------------------------------------
+    | POS Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('pos')->name('pos.')->group(function () {
+        // Tables & Areas
+        Route::get('/tables', [PosController::class, 'tables']);
+        Route::get('/table-areas', [PosController::class, 'tableAreas']);
+        
+        // Products & Categories
+        Route::get('/categories', [PosController::class, 'categories']);
+        Route::get('/products', [PosController::class, 'products']);
+        
+        // Orders
+        Route::post('/orders', [PosController::class, 'createOrder']);
+        Route::get('/orders/{order}', [PosController::class, 'showOrder']);
+        Route::post('/orders/{order}/items', [PosController::class, 'addItems']);
+        Route::delete('/orders/{order}/items/{item}', [PosController::class, 'removeItem']);
+        
+        // Payments
+        Route::get('/payment-methods', [PosController::class, 'paymentMethods']);
+        Route::post('/orders/{order}/payment', [PosController::class, 'processPayment']);
+        Route::patch('/orders/{order}/close', [PosController::class, 'closeOrder']);
+        Route::get('/pending-payments', [PosController::class, 'getPendingPayments']);
+    });
     
     /*
     |--------------------------------------------------------------------------
