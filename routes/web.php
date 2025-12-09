@@ -10,6 +10,16 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+/*
+|--------------------------------------------------------------------------
+| POS Routes (Vue SPA)
+|--------------------------------------------------------------------------
+*/
+Route::get('/pos/{any?}', function () {
+    return view('pos');
+})->where('any', '.*')->name('pos');
+
+
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),

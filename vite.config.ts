@@ -7,7 +7,10 @@ import { defineConfig } from 'vite';
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/js/app.ts'],
+            input: [
+                'resources/js/app.ts',      // Admin App
+                'resources/js/pos/pos.ts',  // POS App
+            ],
             ssr: 'resources/js/ssr.ts',
             refresh: true,
         }),
@@ -24,4 +27,10 @@ export default defineConfig({
             },
         }),
     ],
+    resolve: {
+        alias: {
+            '@': '/resources/js',
+            '@pos': '/resources/js/pos',
+        },
+    },
 });

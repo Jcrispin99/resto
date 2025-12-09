@@ -12,15 +12,19 @@ class OrderPayment extends Model
 
     protected $fillable = [
         'order_id',
+        'cash_register_id',
         'payment_method_id',
         'amount',
-        'reference',
+        'reference_number',
+        'payment_date',
+        'processed_by',
+        'status',
         'notes',
-        'created_by',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'payment_date' => 'datetime',
     ];
 
     public function order(): BelongsTo
@@ -33,8 +37,13 @@ class OrderPayment extends Model
         return $this->belongsTo(PaymentMethod::class);
     }
 
-    public function creator(): BelongsTo
+    public function cashRegister(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(CashRegister::class);
+    }
+
+    public function processor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'processed_by');
     }
 }
