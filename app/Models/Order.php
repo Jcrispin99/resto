@@ -76,31 +76,49 @@ class Order extends Model
 
     /**
      * Generate kitchen tickets based on order items and their stations.
+     * Only generates tickets for items that don't already have one.
      */
     public function generateKitchenTickets(): void
     {
-        // Load items with their product template and station
-        $this->loadMissing('items.productTemplate.kitchenStation');
+        // Load items with their product template, station and existing ticket items
+        $this->loadMissing('items.productTemplate.kitchenStation', 'kitchenTickets.items');
 
-        // Group items by station ID
-        $itemsByStation = $this->items->groupBy(function ($item) {
+        // Get IDs of items that already have a kitchen ticket
+        $existingItemIds = $this->kitchenTickets
+            ->flatMap(fn ($ticket) => $ticket->items->pluck('order_item_id'))
+            ->unique()
+            ->toArray();
+
+        // Filter to only new items (without a ticket)
+        $newItems = $this->items->filter(function ($item) use ($existingItemIds) {
+            return !in_array($item->id, $existingItemIds);
+        });
+
+        if ($newItems->isEmpty()) {
+            return; // No new items to process
+        }
+
+        // Group new items by station ID
+        $itemsByStation = $newItems->groupBy(function ($item) {
             return $item->productTemplate->kitchen_station_id ?? 'no_station';
         });
 
         foreach ($itemsByStation as $stationId => $items) {
             if ($stationId === 'no_station') {
-                continue; // Skip items without a station (or handle differently)
+                continue; // Skip items without a station
             }
 
-            // Create ticket for this station
+            // Always create a NEW ticket for new items (ensures it gets printed)
+            $ticketNumber = $this->order_number . '-' . $stationId . '-' . now()->timestamp;
+            
             $ticket = $this->kitchenTickets()->create([
-                'ticket_number' => $this->order_number.'-'.$stationId, // Simple numbering strategy
+                'ticket_number' => $ticketNumber,
                 'station_id' => $stationId,
                 'status' => KitchenTicket::STATUS_PENDING,
                 'priority' => 'normal',
             ]);
 
-            // Add items to the ticket
+            // Add new items to the ticket
             foreach ($items as $item) {
                 $ticket->items()->create([
                     'order_item_id' => $item->id,

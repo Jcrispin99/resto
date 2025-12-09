@@ -50,7 +50,21 @@ export const useOrdersStore = defineStore('orders', () => {
 
     const hasNewItems = computed(() => {
         if (!currentOrder.value) return cartItems.value.length > 0;
-        return cartItems.value.length > currentOrder.value.items.length;
+        
+        // Check if there are any completely new products (not in original order)
+        const originalProductIds = new Set(currentOrder.value.items.map(i => i.product.id));
+        const hasNewProducts = cartItems.value.some(item => !originalProductIds.has(item.product.id));
+        if (hasNewProducts) return true;
+
+        // Check if any existing product has increased quantity
+        for (const cartItem of cartItems.value) {
+            const originalItem = currentOrder.value.items.find(i => i.product.id === cartItem.product.id);
+            if (originalItem && cartItem.quantity > originalItem.quantity) {
+                return true;
+            }
+        }
+
+        return false;
     });
 
     // Cart Actions
@@ -209,23 +223,47 @@ export const useOrdersStore = defineStore('orders', () => {
         error.value = null;
 
         try {
-            // Get only new items (items not in original order)
-            const originalProductIds = new Set(currentOrder.value.items.map(i => i.product.id));
-            const newItems = cartItems.value.filter(item => !originalProductIds.has(item.product.id));
+            const itemsToSend: {
+                product_template_id: number;
+                quantity: number;
+                unit_price: number;
+                special_instructions: string | null;
+            }[] = [];
 
-            if (newItems.length === 0) {
+            // Build a map of original items by product id
+            const originalItemsMap = new Map(
+                currentOrder.value.items.map(i => [i.product.id, i])
+            );
+
+            for (const cartItem of cartItems.value) {
+                const originalItem = originalItemsMap.get(cartItem.product.id);
+
+                if (!originalItem) {
+                    // Completely new product
+                    itemsToSend.push({
+                        product_template_id: cartItem.product.id,
+                        quantity: cartItem.quantity,
+                        unit_price: cartItem.unit_price,
+                        special_instructions: cartItem.special_instructions || null,
+                    });
+                } else if (cartItem.quantity > originalItem.quantity) {
+                    // Same product but with increased quantity - send only the difference
+                    const additionalQty = cartItem.quantity - originalItem.quantity;
+                    itemsToSend.push({
+                        product_template_id: cartItem.product.id,
+                        quantity: additionalQty,
+                        unit_price: cartItem.unit_price,
+                        special_instructions: cartItem.special_instructions || null,
+                    });
+                }
+            }
+
+            if (itemsToSend.length === 0) {
                 error.value = 'No hay items nuevos para agregar';
                 return false;
             }
 
-            const payload = {
-                items: newItems.map(item => ({
-                    product_template_id: item.product.id,
-                    quantity: item.quantity,
-                    unit_price: item.unit_price,
-                    special_instructions: item.special_instructions || null,
-                })),
-            };
+            const payload = { items: itemsToSend };
 
             await axios.post(`/api/pos/orders/${currentOrder.value.id}/items`, payload);
             

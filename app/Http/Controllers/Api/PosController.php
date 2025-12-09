@@ -263,16 +263,23 @@ class PosController extends Controller
                 $additionalSubtotal += $itemSubtotal;
             }
 
-            // Update order totals
+            // Update order totals and reset status if needed
             $newSubtotal = $order->subtotal + $additionalSubtotal;
             $newTax = $newSubtotal * 0.18;
             $newTotal = $newSubtotal + $newTax;
 
-            $order->update([
+            $updateData = [
                 'subtotal' => $newSubtotal,
                 'tax' => $newTax,
                 'total' => $newTotal,
-            ]);
+            ];
+
+            // If order was 'ready' for payment, reset to pending since new items were added
+            if ($order->status === Order::STATUS_READY) {
+                $updateData['status'] = Order::STATUS_PENDING;
+            }
+
+            $order->update($updateData);
 
             // Regenerate kitchen tickets for new items
             $order->generateKitchenTickets();
@@ -413,7 +420,7 @@ class PosController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Cuenta cerrada. Lista para pago.',
-            'data' => new OrderResource($order->fresh(['table', 'waiter', 'items.product'])),
+            'data' => new OrderResource($order->fresh(['table', 'waiter', 'items.productTemplate'])),
         ]);
     }
 
@@ -423,7 +430,7 @@ class PosController extends Controller
     public function getPendingPayments(): JsonResponse
     {
         $orders = Order::where('status', 'ready')
-            ->with(['table.area', 'waiter', 'items.product'])
+            ->with(['table.area', 'waiter', 'items.productTemplate'])
             ->orderBy('updated_at', 'desc')
             ->get();
 

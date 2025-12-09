@@ -55,5 +55,6 @@ class KitchenTicket extends Model
     const STATUS_PENDING = 'pending';
     const STATUS_PREPARING = 'preparing';
     const STATUS_READY = 'ready';
+    const STATUS_COMPLETED = 'completed';
     const STATUS_DELIVERED = 'delivered';
 }

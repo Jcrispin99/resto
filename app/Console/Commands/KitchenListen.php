@@ -9,6 +9,7 @@ use Illuminate\Console\Command;
 class KitchenListen extends Command
 {
     protected $signature = 'kitchen:listen {--station= : Filter by station ID} {--interval=3 : Polling interval in seconds}';
+
     protected $description = 'Listen for new kitchen tickets and print them in real-time (simulates printer output)';
 
     private array $printedTickets = [];
@@ -18,9 +19,9 @@ class KitchenListen extends Command
         $stationFilter = $this->option('station');
         $interval = (int) $this->option('interval');
 
-        $this->info("🍳 KITCHEN PRINTER SIMULATOR");
-        $this->info("════════════════════════════════════════");
-        $this->info("Escuchando tickets nuevos... (Ctrl+C para salir)");
+        $this->info('🍳 KITCHEN PRINTER SIMULATOR');
+        $this->info('════════════════════════════════════════');
+        $this->info('Escuchando tickets nuevos... (Ctrl+C para salir)');
         $this->info("Intervalo de polling: {$interval}s");
         $this->newLine();
 
@@ -29,12 +30,12 @@ class KitchenListen extends Command
         if ($stationFilter) {
             $stations->where('id', $stationFilter);
         }
-        
+
         foreach ($stations->get() as $station) {
             $this->info("📍 Monitoreando: {$station->name} (IP: {$station->printer_ip})");
         }
         $this->newLine();
-        $this->line("─────────────────────────────────────────────────────────");
+        $this->line('─────────────────────────────────────────────────────────');
         $this->newLine();
 
         while (true) {
@@ -79,14 +80,14 @@ class KitchenListen extends Command
         $order = $ticket->order;
 
         $this->alert("🖨️  NUEVO TICKET - {$station->name}");
-        
-        $this->line("╔════════════════════════════════════════════════════════╗");
+
+        $this->line('╔════════════════════════════════════════════════════════╗');
         $this->line("║  TICKET: {$ticket->ticket_number}");
-        $this->line("║  " . now()->format('d/m/Y H:i:s'));
-        $this->line("╠════════════════════════════════════════════════════════╣");
-        $this->line("║  Mesa: " . ($order->table->number ?? 'PARA LLEVAR'));
-        $this->line("║  Mozo: " . ($order->waiter->name ?? 'N/A'));
-        $this->line("╠════════════════════════════════════════════════════════╣");
+        $this->line('║  '.now()->format('d/m/Y H:i:s'));
+        $this->line('╠════════════════════════════════════════════════════════╣');
+        $this->line('║  Mesa: '.($order->table->number ?? 'PARA LLEVAR'));
+        $this->line('║  Mozo: '.($order->waiter->name ?? 'N/A'));
+        $this->line('╠════════════════════════════════════════════════════════╣');
 
         foreach ($ticket->items as $item) {
             $productName = $item->orderItem->productTemplate->name ?? 'Producto';
@@ -99,7 +100,7 @@ class KitchenListen extends Command
             }
         }
 
-        $this->line("╚════════════════════════════════════════════════════════╝");
+        $this->line('╚════════════════════════════════════════════════════════╝');
         $this->newLine();
 
         // Play sound (beep)
