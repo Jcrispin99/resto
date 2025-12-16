@@ -23,9 +23,11 @@ class DatabaseSeeder extends Seeder
 
             RolesAndPermissionsSeeder::class,
             PosUsersSeeder::class,
+            PosTerminalSeeder::class,        // ✅ Terminales antes de cajas
             PosTablesSeeder::class,
             PaymentMethodsSeeder::class,
-            KitchenStationsSeeder::class, // Before MenuProductsSeeder
+            KitchenStationsSeeder::class,
+            CashRegisterSeeder::class,       // ✅ Después de terminales y usuarios
 
             // Products (after stations)
             InventoryProductsSeeder::class,

@@ -67,6 +67,7 @@ Route::middleware([
     Route::resource('cash-registers', \App\Http\Controllers\CashRegisterController::class)->except(['edit', 'update']);
     Route::post('/cash-registers/{cashRegister}/close', [\App\Http\Controllers\CashRegisterController::class, 'close'])->name('cash-registers.close');
     Route::post('/cash-registers/{cashRegister}/add-movement', [\App\Http\Controllers\CashRegisterController::class, 'addMovement'])->name('cash-registers.add-movement');
+    Route::resource('kitchen-stations', \App\Http\Controllers\KitchenStationController::class);
 
     // Tables & Reservations
     Route::resource('table-areas', \App\Http\Controllers\TableAreaController::class);

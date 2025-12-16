@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('cash_movements', function (Blueprint $table) {
             $table->id();
             $table->foreignId('cash_register_id')->constrained()->onDelete('cascade');
-            $table->enum('type', ['income', 'expense', 'opening', 'closing', 'deposit', 'withdrawal']);
+            $table->enum('type', ['income', 'expense', 'opening', 'closing', 'deposit', 'withdrawal', 'sale']);
             $table->string('concept', 200);
             $table->decimal('amount', 10, 2);
             $table->string('payment_method', 50)->nullable();

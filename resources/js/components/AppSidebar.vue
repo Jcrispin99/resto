@@ -26,6 +26,7 @@ import combos from '@/routes/combos';
 import paymentMethods from '@/routes/payment-methods';
 import posTerminals from '@/routes/pos-terminals';
 import cashRegisters from '@/routes/cash-registers';
+import kitchenStations from '@/routes/kitchen-stations';
 import tableAreas from '@/routes/table-areas';
 import tables from '@/routes/tables';
 import reservations from '@/routes/reservations';
@@ -189,6 +190,11 @@ const navGroups: NavGroup[] = [
                 title: 'Métodos de Pago',
                 href: paymentMethods.index.url(),
                 icon: CreditCard,
+            },
+            {
+                title: 'Estaciones de Cocina',
+                href: kitchenStations.index.url(),
+                icon: ChefHat,
             },
         ],
     },

@@ -126,14 +126,39 @@ class PosController extends Controller
     }
 
     /**
+     * Get available journals for POS orders (sale type)
+     */
+    public function journals(): JsonResponse
+    {
+        $journals = \App\Models\Journal::where('type', 'sale')
+            ->with('sequence')
+            ->orderBy('code')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $journals->map(function ($journal) {
+                return [
+                    'id' => $journal->id,
+                    'code' => $journal->code,
+                    'name' => $journal->name,
+                    'type' => $journal->type,
+                ];
+            }),
+        ]);
+    }
+
+    /**
      * Create new order
      */
     public function createOrder(Request $request): JsonResponse
     {
         $validated = $request->validate([
+            'journal_id' => 'required|exists:journals,id',
             'table_id' => 'nullable|exists:tables,id',
             'guests_count' => 'required|integer|min:1|max:50',
             'order_type' => 'nullable|in:dine_in,takeout,delivery',
+            'cash_register_id' => 'nullable|exists:cash_registers,id',
             'items' => 'required|array|min:1',
             'items.*.product_template_id' => 'required|exists:product_template,id',
             'items.*.quantity' => 'required|integer|min:1',
@@ -141,25 +166,27 @@ class PosController extends Controller
             'items.*.special_instructions' => 'nullable|string|max:500',
         ]);
 
-        $order = DB::transaction(function () use ($validated, $request) {
-            // Generate order number
-            $orderNumber = $this->generateOrderNumber();
+        $sequenceService = app(\App\Services\SequenceService::class);
+        $sequence = $sequenceService->getNextNumber($validated['journal_id']);
 
+        $order = DB::transaction(function () use ($validated, $request, $sequence) {
             // Calculate totals
             $subtotal = 0;
             foreach ($validated['items'] as $item) {
                 $subtotal += $item['quantity'] * $item['unit_price'];
             }
 
-            $tax = $subtotal * 0.18; // IGV 18%
+            $tax = $subtotal * 0.18;
             $total = $subtotal + $tax;
 
-            // Create order
+            // Create order with auto-generated number
             $order = Order::create([
-                'order_number' => $orderNumber,
+                'order_number' => $sequence['full_number'],
+                'journal_id' => $validated['journal_id'],
                 'branch_id' => $request->user()?->branch_id ?? 1,
+                'cash_register_id' => $validated['cash_register_id'] ?? null,
                 'table_id' => $validated['table_id'] ?? null,
-                'waiter_id' => $request->user()?->id ?? 1, // Default to user 1 for dev
+                'waiter_id' => $request->user()?->id ?? 1,
                 'order_type' => $validated['order_type'] ?? 'dine_in',
                 'status' => Order::STATUS_PENDING,
                 'payment_status' => Order::PAYMENT_UNPAID,

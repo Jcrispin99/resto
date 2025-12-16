@@ -48,6 +48,7 @@ class CashMovement extends Model
     const TYPE_OPENING = 'opening';
 
     const TYPE_CLOSING = 'closing';
+    const TYPE_SALE = 'sale';
 
     const TYPE_DEPOSIT = 'deposit';
 

@@ -46,6 +46,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/categories', [PosController::class, 'categories']);
         Route::get('/products', [PosController::class, 'products']);
         
+        // Journals (for order auto-generation)
+        Route::get('/journals', [PosController::class, 'journals']);
+        
         // Orders
         Route::post('/orders', [PosController::class, 'createOrder']);
         Route::get('/orders/{order}', [PosController::class, 'showOrder']);
