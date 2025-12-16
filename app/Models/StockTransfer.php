@@ -12,6 +12,7 @@ class StockTransfer extends Model
 
     protected $fillable = [
         'transfer_number',
+        'journal_id',
         'from_warehouse_id',
         'to_warehouse_id',
         'transfer_date',
@@ -24,6 +25,14 @@ class StockTransfer extends Model
     protected $casts = [
         'transfer_date' => 'date',
     ];
+
+    /**
+     * Get the journal for fiscal numbering.
+     */
+    public function journal(): BelongsTo
+    {
+        return $this->belongsTo(Journal::class);
+    }
 
     public function fromWarehouse(): BelongsTo
     {

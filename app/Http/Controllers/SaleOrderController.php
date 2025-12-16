@@ -42,10 +42,14 @@ class SaleOrderController extends Controller
     {
         $branches = Company::branches()->active()->get();
         $warehouses = Warehouse::active()->get();
+        $taxes = \App\Models\Tax::active()->get();
+        $journals = \App\Models\Journal::where('type', 'sale')->where('is_active', true)->get();
 
         return Inertia::render('SaleOrders/Create', [
             'branches' => \App\Http\Resources\CompanyResource::collection($branches),
             'warehouses' => \App\Http\Resources\WarehouseResource::collection($warehouses),
+            'taxes' => $taxes,
+            'journals' => $journals,
         ]);
     }
 
@@ -54,9 +58,9 @@ class SaleOrderController extends Controller
      */
     public function store(Request $request)
     {
-        // ... validation unchanged ...
         $validated = $request->validate([
-            'order_number' => 'required|string|max:20|unique:sale_orders,order_number',
+            // order_number se genera automáticamente basado en journal_id
+            'journal_id' => 'required|exists:journals,id',
             'branch_id' => 'required|exists:companies,id',
             'warehouse_id' => 'required|exists:warehouses,id',
             'partner_id' => 'required|exists:partners,id',
@@ -86,6 +90,10 @@ class SaleOrderController extends Controller
             'items.*.notes' => 'nullable|string',
         ]);
 
+        // Generar order_number automáticamente usando SequenceService
+        $sequenceService = app(\App\Services\SequenceService::class);
+        $sequence = $sequenceService->getNextNumber($validated['journal_id']);
+
         // Calculate totals
         $itemsTotal = collect($validated['items'])->sum('total');
         $itemsDiscounts = collect($validated['items'])->sum('discount');
@@ -93,10 +101,11 @@ class SaleOrderController extends Controller
         $tax = collect($validated['items'])->sum('tax_amount');
         $total = $itemsTotal;
 
-        DB::transaction(function () use ($validated, $subtotal, $itemsDiscounts, $tax, $total) {
-            // Create sale order
+        DB::transaction(function () use ($validated, $subtotal, $itemsDiscounts, $tax, $total, $sequence) {
+            // Create sale order with auto-generated order_number
             $order = SaleOrder::create([
-                'order_number' => $validated['order_number'],
+                'order_number' => $sequence['full_number'], // e.g., "F004-00000001"
+                'journal_id' => $validated['journal_id'],
                 'branch_id' => $validated['branch_id'],
                 'warehouse_id' => $validated['warehouse_id'],
                 'partner_id' => $validated['partner_id'],
@@ -173,7 +182,7 @@ class SaleOrderController extends Controller
         $order = SaleOrder::findOrFail($id);
 
         $validated = $request->validate([
-            'order_number' => ['required', 'string', 'max:20', Rule::unique('sale_orders')->ignore($order->id)],
+            // journal_id y order_number no se pueden editar después de creación
             'branch_id' => 'required|exists:companies,id',
             'warehouse_id' => 'required|exists:warehouses,id',
             'partner_id' => 'required|exists:partners,id',
@@ -213,9 +222,8 @@ class SaleOrderController extends Controller
         DB::transaction(function () use ($order, $validated, $subtotal, $itemsDiscounts, $tax, $total) {
             $originalStatus = $order->status;
 
-            // Update sale order
+            // Update sale order (order_number y journal_id no se modifican)
             $order->update([
-                'order_number' => $validated['order_number'],
                 'branch_id' => $validated['branch_id'],
                 'warehouse_id' => $validated['warehouse_id'],
                 'partner_id' => $validated['partner_id'],

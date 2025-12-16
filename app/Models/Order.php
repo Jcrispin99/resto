@@ -15,6 +15,7 @@ class Order extends Model
 
     protected $fillable = [
         'order_number',
+        'journal_id',
         'branch_id',
         'cash_register_id',
         'table_id',
@@ -140,6 +141,14 @@ class Order extends Model
     public function partner(): BelongsTo
     {
         return $this->belongsTo(Partner::class);
+    }
+
+    /**
+     * Get the journal for fiscal numbering.
+     */
+    public function journal(): BelongsTo
+    {
+        return $this->belongsTo(Journal::class);
     }
 
     public function waiter(): BelongsTo

@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->string('order_number', 20)->unique();
+            $table->foreignId('journal_id')->nullable()->constrained('journals')->onDelete('restrict');
             $table->foreignId('branch_id')->constrained('companies')->onDelete('cascade');
             $table->foreignId('cash_register_id')->nullable()->constrained('companies')->onDelete('set null');
             $table->foreignId('table_id')->nullable()->constrained('tables')->onDelete('set null');

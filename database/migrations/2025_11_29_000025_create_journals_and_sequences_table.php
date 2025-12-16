@@ -25,15 +25,15 @@ return new class extends Migration
             $table->id();
             $table->foreignId('company_id')->constrained('companies')->onDelete('cascade');
             $table->foreignId('branch_id')->nullable()->constrained('companies')->onDelete('cascade')->comment('Si es null, es una serie global de la empresa');
-            
+
             $table->string('name')->comment('Ej: Factura Electrónica F001');
             $table->string('code')->comment('La Serie: F001, B001, NV01');
             $table->string('type')->comment('sale, purchase, quote, credit_note, debit_note, dispatch');
             $table->boolean('is_fiscal')->default(false)->comment('Si es comprobante fiscal SUNAT');
             $table->string('document_type_code', 2)->nullable()->comment('SUNAT: 01=Factura, 03=Boleta, 07=NC, 08=ND, 09=Guia');
-            
+
             $table->foreignId('sequence_id')->constrained('sequences')->onDelete('restrict');
-            
+
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 

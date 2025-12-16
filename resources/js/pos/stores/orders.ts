@@ -3,7 +3,6 @@ import { ref, computed } from 'vue';
 import axios from 'axios';
 import type { 
     Order, 
-    OrderItem, 
     CreateOrderPayload, 
     ApiResponse,
     Product 

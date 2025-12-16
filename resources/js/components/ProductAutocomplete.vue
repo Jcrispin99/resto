@@ -15,6 +15,7 @@ interface Props {
     modelValue?: number | null;
     placeholder?: string;
     initialName?: string;
+    categoryType?: 'inventory' | 'menu'; // Filter by category type
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -50,7 +51,12 @@ const searchProducts = debounce(async () => {
 
     loading.value = true;
     try {
-        const response = await fetch(`/api/products/search?q=${encodeURIComponent(searchQuery.value)}`);
+        const url = new URL('/api/products/search', window.location.origin);
+        url.searchParams.set('q', searchQuery.value);
+        if (props.categoryType) {
+            url.searchParams.set('type', props.categoryType);
+        }
+        const response = await fetch(url.toString());
         if (response.ok) {
             results.value = await response.json();
             showResults.value = true;

@@ -40,6 +40,22 @@ Route::middleware([
     Route::resource('product-attributes', \App\Http\Controllers\ProductAttributeController::class);
     Route::resource('product-templates', \App\Http\Controllers\ProductTemplateController::class);
     
+    // Inventory Module
+    Route::prefix('inventory')->name('inventory.')->group(function () {
+        Route::resource('products', \App\Http\Controllers\Inventory\ProductController::class)
+            ->parameters(['products' => 'product']);
+        Route::resource('categories', \App\Http\Controllers\Inventory\CategoryController::class)
+            ->parameters(['categories' => 'category']);
+    });
+    
+    // Menu Module
+    Route::prefix('menu')->name('menu.')->group(function () {
+        Route::resource('dishes', \App\Http\Controllers\Menu\DishController::class)
+            ->parameters(['dishes' => 'dish']);
+        Route::resource('categories', \App\Http\Controllers\Menu\CategoryController::class)
+            ->parameters(['categories' => 'category']);
+    });
+    
     // Recipes & Combos
     Route::resource('recipes', \App\Http\Controllers\RecipeController::class);
     Route::get('/recipes/calculate-cost/{productTemplate}', [\App\Http\Controllers\RecipeController::class, 'calculateCost']);

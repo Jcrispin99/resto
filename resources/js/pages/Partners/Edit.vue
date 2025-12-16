@@ -4,7 +4,6 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { update, index } from '@/routes/partners';
 import { dashboard } from '@/routes';
@@ -94,15 +93,17 @@ const submit = () => {
                             <Label class="text-base font-semibold mb-3 block">Partner Role *</Label>
                             <div class="flex gap-6">
                                 <div class="flex items-center space-x-2">
-                                    <Checkbox id="is_customer" 
-                                              :checked="form.is_customer" 
-                                              @update:checked="form.is_customer = $event" />
+                                    <input type="checkbox" 
+                                           id="is_customer"
+                                           v-model="form.is_customer"
+                                           class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" />
                                     <Label for="is_customer" class="font-normal cursor-pointer">Customer (Cliente)</Label>
                                 </div>
                                 <div class="flex items-center space-x-2">
-                                    <Checkbox id="is_supplier" 
-                                              :checked="form.is_supplier" 
-                                              @update:checked="form.is_supplier = $event" />
+                                    <input type="checkbox" 
+                                           id="is_supplier"
+                                           v-model="form.is_supplier"
+                                           class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" />
                                     <Label for="is_supplier" class="font-normal cursor-pointer">Supplier (Proveedor)</Label>
                                 </div>
                             </div>
@@ -212,9 +213,10 @@ const submit = () => {
 
                         <!-- Active Checkbox -->
                         <div class="flex items-center space-x-2">
-                            <Checkbox id="is_active" 
-                                      :checked="form.is_active" 
-                                      @update:checked="form.is_active = $event" />
+                            <input type="checkbox" 
+                                   id="is_active"
+                                   v-model="form.is_active"
+                                   class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" />
                             <Label for="is_active">Active</Label>
                         </div>
 

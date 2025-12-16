@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('purchase_orders', function (Blueprint $table) {
             $table->id();
             $table->string('order_number', 20)->unique();
+            $table->foreignId('journal_id')->nullable()->constrained('journals')->onDelete('restrict');
             $table->foreignId('branch_id')->constrained('companies')->onDelete('cascade');
             $table->foreignId('warehouse_id')->constrained('warehouses')->onDelete('cascade');
             $table->foreignId('partner_id')->constrained('partners')->onDelete('restrict')->comment('Supplier');

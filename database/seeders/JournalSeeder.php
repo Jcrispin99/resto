@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Branch;
 use App\Models\Company;
 use App\Models\Journal;
 use App\Models\Sequence;
@@ -12,91 +11,64 @@ class JournalSeeder extends Seeder
 {
     public function run(): void
     {
-        $company = Company::first();
+        $mainCompany = Company::whereNull('parent_id')->first() ?? Company::first();
 
-        if (!$company) {
+        if (! $mainCompany) {
             $this->command->warn('No company found. Skipping JournalSeeder.');
+
             return;
         }
 
-        $branches = Branch::where('company_id', $company->id)->get();
-
-        if ($branches->isEmpty()) {
-            $this->command->warn('No branches found. Creating global journals only.');
-        }
-
-        // 1. Series Globales (Cotizaciones, Compras, Notas de Venta Globales)
-        $this->createGlobalJournals($company);
-
-        // 2. Series por Sucursal (Facturas, Boletas, Notas de Crédito)
-        foreach ($branches as $index => $branch) {
-            // Generar códigos de serie basados en el ID o índice de la sucursal
-            // Branch 1 -> F001, B001
-            // Branch 2 -> F002, B002
-            $seriesSuffix = str_pad($index + 1, 3, '0', STR_PAD_LEFT); // 001, 002...
-
-            $this->createBranchJournals($company, $branch, $seriesSuffix);
-        }
-    }
-
-    private function createGlobalJournals(Company $company)
-    {
         $journals = [
-            ['name' => 'Cotizaciones',    'type' => Journal::TYPE_QUOTE,    'code' => 'COT',  'doc_type' => null, 'fiscal' => false],
-            ['name' => 'Órdenes de Compra', 'type' => Journal::TYPE_PURCHASE, 'code' => 'OC',   'doc_type' => null, 'fiscal' => false],
-            ['name' => 'Compras',         'type' => Journal::TYPE_PURCHASE, 'code' => 'COMP', 'doc_type' => null, 'fiscal' => false],
+            ['name' => 'NOTA DE VENTA',           'type' => 'sale',           'code' => 'NV',   'document_type_code' => null, 'is_fiscal' => false],
+            ['name' => 'FACTURA DE VENTA',        'type' => 'sale',           'code' => 'F004', 'document_type_code' => '01', 'is_fiscal' => true],
+            ['name' => 'BOLETA DE VENTA',         'type' => 'sale',           'code' => 'B004', 'document_type_code' => '03', 'is_fiscal' => true],
+            ['name' => 'Cotizaciones',            'type' => 'quote',          'code' => 'COT',  'document_type_code' => null, 'is_fiscal' => false],
+            ['name' => 'Nota de Crédito Factura', 'type' => 'credit_note',    'code' => 'FC04', 'document_type_code' => '07', 'is_fiscal' => true],
+            ['name' => 'Nota de Crédito Boleta',  'type' => 'credit_note',    'code' => 'BC04', 'document_type_code' => '07', 'is_fiscal' => true],
+            ['name' => 'Nota de Débito Factura',  'type' => 'debit_note',     'code' => 'FD04', 'document_type_code' => '08', 'is_fiscal' => true],
+            ['name' => 'Nota de Débito Boleta',   'type' => 'debit_note',     'code' => 'BD04', 'document_type_code' => '08', 'is_fiscal' => true],
+            ['name' => 'Órdenes de Compra',       'type' => 'purchase',       'code' => 'OC',   'document_type_code' => null, 'is_fiscal' => false],
+            ['name' => 'Compras',                 'type' => 'purchase',       'code' => 'COMP', 'document_type_code' => null, 'is_fiscal' => false],
+            ['name' => 'Traslados',               'type' => 'transfer',       'code' => 'TRF',  'document_type_code' => null, 'is_fiscal' => false],
+            ['name' => 'Cuadre de Caja',          'type' => 'cash',           'code' => 'CAJA', 'document_type_code' => null, 'is_fiscal' => false],
         ];
 
-        foreach ($journals as $data) {
-            $this->createJournal($company, null, $data);
+        foreach ($journals as $journalData) {
+            // Verificar si ya existe
+            $existing = Journal::where('code', $journalData['code'])
+                ->where('company_id', $mainCompany->id)
+                ->first();
+
+            if ($existing) {
+                continue; // No duplicar
+            }
+
+            $sequence = Sequence::create([
+                'sequence_size' => 8,
+                'step' => 1,
+                'next_number' => 1,
+            ]);
+
+            Journal::create([
+                'code' => $journalData['code'],
+                'name' => $journalData['name'],
+                'type' => $journalData['type'],
+                'document_type_code' => $journalData['document_type_code'],
+                'is_fiscal' => $journalData['is_fiscal'] ?? false,
+                'sequence_id' => $sequence->id,
+                'company_id' => $mainCompany->id,
+                'branch_id' => null, // Sin branch por ahora
+            ]);
         }
-    }
 
-    private function createBranchJournals(Company $company, Branch $branch, string $suffix)
-    {
-        $journals = [
-            // Ventas POS
-            ['name' => "Nota de Venta {$branch->name}", 'type' => Journal::TYPE_SALE, 'code' => "NV{$suffix}", 'doc_type' => null, 'fiscal' => false],
-            ['name' => "Factura {$branch->name}",       'type' => Journal::TYPE_SALE, 'code' => "F{$suffix}",  'doc_type' => '01', 'fiscal' => true],
-            ['name' => "Boleta {$branch->name}",        'type' => Journal::TYPE_SALE, 'code' => "B{$suffix}",  'doc_type' => '03', 'fiscal' => true],
-            
-            // Notas de Crédito
-            ['name' => "NC Factura {$branch->name}",    'type' => Journal::TYPE_CREDIT_NOTE, 'code' => "FC{$suffix}", 'doc_type' => '07', 'fiscal' => true],
-            ['name' => "NC Boleta {$branch->name}",     'type' => Journal::TYPE_CREDIT_NOTE, 'code' => "BC{$suffix}", 'doc_type' => '07', 'fiscal' => true],
-            
-            // Guías (opcional)
-            ['name' => "Guía Remisión {$branch->name}", 'type' => Journal::TYPE_DISPATCH,    'code' => "T{$suffix}",  'doc_type' => '09', 'fiscal' => true],
-        ];
-
-        foreach ($journals as $data) {
-            $this->createJournal($company, $branch, $data);
-        }
-    }
-
-    private function createJournal(Company $company, ?Branch $branch, array $data)
-    {
-        // Crear secuencia
-        $sequence = Sequence::create([
-            'sequence_size' => 8,
-            'step'          => 1,
-            'next_number'   => 1,
-        ]);
-
-        // Crear journal
-        Journal::updateOrCreate(
-            [
-                'company_id' => $company->id,
-                'code'       => $data['code'],
-            ],
-            [
-                'branch_id'          => $branch?->id,
-                'name'               => $data['name'],
-                'type'               => $data['type'],
-                'document_type_code' => $data['doc_type'],
-                'is_fiscal'          => $data['fiscal'],
-                'sequence_id'        => $sequence->id,
-                'is_active'          => true,
-            ]
+        $this->command->info('Journals seeded!');
+        $this->command->table(
+            ['Code', 'Name', 'Type', 'Fiscal'],
+            Journal::where('company_id', $mainCompany->id)
+                ->get(['code', 'name', 'type', 'is_fiscal'])
+                ->map(fn ($j) => [$j->code, $j->name, $j->type, $j->is_fiscal ? '✓' : ''])
+                ->toArray()
         );
     }
 }

@@ -30,7 +30,7 @@ const routes: RouteRecordRaw[] = [
     // ========================
     {
         path: '/pos',
-        redirect: (to) => {
+        redirect: () => {
             const authStore = useAuthStore();
             if (authStore.isWaiter) return '/pos/tables';
             if (authStore.isCashier) return '/pos/cashier';

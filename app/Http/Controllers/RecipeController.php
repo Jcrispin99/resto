@@ -2,33 +2,30 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Recipe;
-use App\Models\ProductTemplate;
 use App\Models\ProductProduct;
+use App\Models\ProductTemplate;
+use App\Models\Recipe;
 use App\Models\Unit;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class RecipeController extends Controller
 {
-    /**
-     * Display recipes for a specific product template.
-     */
     public function index(Request $request)
     {
         $productTemplateId = $request->query('product_template_id');
-        
+
         $query = Recipe::with(['productTemplate', 'ingredient.template', 'unit']);
-        
+
         if ($productTemplateId) {
             $query->where('product_template_id', $productTemplateId);
         }
-        
+
         $recipes = $query->latest()->paginate(15);
-        
+
         return Inertia::render('Recipes/Index', [
             'recipes' => $recipes,
-            'productTemplates' => ProductTemplate::where('can_be_sold', true)->get(),
+            'productTemplates' => ProductTemplate::whereHas('recipes')->orderBy('name')->get(),
             'filters' => $request->only(['product_template_id']),
         ]);
     }
@@ -39,9 +36,9 @@ class RecipeController extends Controller
     public function create(Request $request)
     {
         $productTemplateId = $request->query('product_template_id');
-        
+
         return Inertia::render('Recipes/Create', [
-            'productTemplates' => ProductTemplate::where('can_be_sold', true)->get(),
+            'productTemplates' => ProductTemplate::where('can_be_sold', true)->orderBy('name')->get(),
             'ingredients' => ProductProduct::with('template')->get(),
             'units' => Unit::all(),
             'selectedProductTemplateId' => $productTemplateId,
@@ -122,28 +119,28 @@ class RecipeController extends Controller
     public function calculateCost(ProductTemplate $productTemplate)
     {
         $totalCost = 0;
-        
+
         foreach ($productTemplate->recipes as $recipe) {
             // Get current cost of ingredient from inventory
             $ingredient = $recipe->ingredient;
             $latestInventory = $ingredient->inventories()
                 ->latest()
                 ->first();
-            
+
             if ($latestInventory) {
                 $ingredientCost = $latestInventory->cost_balance;
                 $quantityNeeded = $recipe->quantity * (1 + $recipe->waste_percentage / 100);
                 $totalCost += $ingredientCost * $quantityNeeded;
             }
         }
-        
+
         return response()->json([
             'product_template_id' => $productTemplate->id,
             'product_name' => $productTemplate->name,
             'total_cost' => round($totalCost, 2),
             'sale_price' => $productTemplate->sale_price,
             'margin' => round($productTemplate->sale_price - $totalCost, 2),
-            'margin_percentage' => $totalCost > 0 
+            'margin_percentage' => $totalCost > 0
                 ? round((($productTemplate->sale_price - $totalCost) / $productTemplate->sale_price) * 100, 2)
                 : 0,
         ]);

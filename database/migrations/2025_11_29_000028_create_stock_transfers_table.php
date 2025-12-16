@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('stock_transfers', function (Blueprint $table) {
             $table->id();
             $table->string('transfer_number', 20)->unique();
+            $table->foreignId('journal_id')->nullable()->constrained('journals')->onDelete('restrict');
             $table->foreignId('from_warehouse_id')->constrained('warehouses')->onDelete('cascade');
             $table->foreignId('to_warehouse_id')->constrained('warehouses')->onDelete('cascade');
             $table->date('transfer_date');

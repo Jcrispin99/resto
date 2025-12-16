@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import NavFooter from '@/components/NavFooter.vue';
+import NavGroups from '@/components/NavGroups.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
 import {
@@ -19,9 +20,7 @@ import partners from '@/routes/partners';
 import purchaseOrders from '@/routes/purchase-orders';
 import saleOrders from '@/routes/sale-orders';
 import stockTransfers from '@/routes/stock-transfers';
-import productCategories from '@/routes/product-categories';
 import productAttributes from '@/routes/product-attributes';
-import productTemplates from '@/routes/product-templates';
 import recipes from '@/routes/recipes';
 import combos from '@/routes/combos';
 import paymentMethods from '@/routes/payment-methods';
@@ -31,105 +30,178 @@ import tableAreas from '@/routes/table-areas';
 import tables from '@/routes/tables';
 import reservations from '@/routes/reservations';
 import { type NavItem } from '@/types';
+import { type NavGroup } from '@/components/NavGroups.vue';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Tag, Package, Building2, Warehouse, Ruler, Users, ShoppingCart, TrendingUp, ArrowRightLeft, ChefHat, Gift, CreditCard, Monitor, Wallet, UtensilsCrossed, Calendar } from 'lucide-vue-next';
+import { 
+    BookOpen, Folder, LayoutGrid, Tag, Package, Building2, Warehouse, 
+    Ruler, Users, ShoppingCart, TrendingUp, ArrowRightLeft, ChefHat, 
+    Gift, CreditCard, Monitor, Wallet, UtensilsCrossed, Calendar,
+    Boxes
+} from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
-const mainNavItems: NavItem[] = [
+// Dashboard - siempre visible
+const dashboardItems: NavItem[] = [
     {
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
     },
+];
+
+// Grupos del sidebar
+const navGroups: NavGroup[] = [
     {
-        title: 'Companies',
-        href: companies.index.url(),
-        icon: Building2,
+        title: '📦 Inventario',
+        defaultOpen: true,
+        items: [
+            {
+                title: 'Productos',
+                href: '/inventory/products',
+                icon: Package,
+            },
+            {
+                title: 'Categorías',
+                href: '/inventory/categories',
+                icon: Tag,
+            },
+            {
+                title: 'Almacenes',
+                href: warehouses.index.url(),
+                icon: Warehouse,
+            },
+            {
+                title: 'Unidades',
+                href: units.index.url(),
+                icon: Ruler,
+            },
+            {
+                title: 'Transferencias',
+                href: stockTransfers.index.url(),
+                icon: ArrowRightLeft,
+            },
+        ],
     },
     {
-        title: 'Warehouses',
-        href: warehouses.index.url(),
-        icon: Warehouse,
+        title: '🛒 Compras',
+        defaultOpen: true,
+        items: [
+            {
+                title: 'Proveedores',
+                href: '/partners?filter=suppliers',
+                icon: Users,
+            },
+            {
+                title: 'Órdenes de Compra',
+                href: purchaseOrders.index.url(),
+                icon: ShoppingCart,
+            },
+        ],
     },
     {
-        title: 'Units',
-        href: units.index.url(),
-        icon: Ruler,
+        title: '🍽️ Menú',
+        defaultOpen: true,
+        items: [
+            {
+                title: 'Platos',
+                href: '/menu/dishes',
+                icon: UtensilsCrossed,
+            },
+            {
+                title: 'Categorías',
+                href: '/menu/categories',
+                icon: Tag,
+            },
+            {
+                title: 'Recetas',
+                href: recipes.index.url(),
+                icon: ChefHat,
+            },
+            {
+                title: 'Combos',
+                href: combos.index.url(),
+                icon: Gift,
+            },
+            {
+                title: 'Atributos',
+                href: productAttributes.index.url(),
+                icon: Boxes,
+            },
+        ],
     },
     {
-        title: 'Partners',
-        href: partners.index.url(),
-        icon: Users,
+        title: '💰 Ventas',
+        defaultOpen: true,
+        items: [
+            {
+                title: 'Clientes',
+                href: '/partners?filter=customers',
+                icon: Users,
+            },
+            {
+                title: 'Órdenes de Venta',
+                href: saleOrders.index.url(),
+                icon: TrendingUp,
+            },
+        ],
     },
     {
-        title: 'Purchase Orders',
-        href: purchaseOrders.index.url(),
-        icon: ShoppingCart,
+        title: '👥 Partners',
+        defaultOpen: false,
+        items: [
+            {
+                title: 'Clientes/Proveedores',
+                href: partners.index.url(),
+                icon: Users,
+            },
+        ],
     },
     {
-        title: 'Sale Orders',
-        href: saleOrders.index.url(),
-        icon: TrendingUp,
+        title: '🏪 POS Config',
+        defaultOpen: false,
+        items: [
+            {
+                title: 'Áreas',
+                href: tableAreas.index.url(),
+                icon: LayoutGrid,
+            },
+            {
+                title: 'Mesas',
+                href: tables.index.url(),
+                icon: UtensilsCrossed,
+            },
+            {
+                title: 'Reservas',
+                href: reservations.index.url(),
+                icon: Calendar,
+            },
+            {
+                title: 'Terminales',
+                href: posTerminals.index.url(),
+                icon: Monitor,
+            },
+            {
+                title: 'Cajas',
+                href: cashRegisters.index.url(),
+                icon: Wallet,
+            },
+            {
+                title: 'Métodos de Pago',
+                href: paymentMethods.index.url(),
+                icon: CreditCard,
+            },
+        ],
     },
     {
-        title: 'Stock Transfers',
-        href: stockTransfers.index.url(),
-        icon: ArrowRightLeft,
-    },
-    {
-        title: 'Products',
-        href: productTemplates.index.url(),
-        icon: Package,
-    },
-    {
-        title: 'Product Categories',
-        href: productCategories.index.url(),
-        icon: Tag,
-    },
-    {
-        title: 'Product Attributes',
-        href: productAttributes.index.url(),
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Recipes',
-        href: recipes.index.url(),
-        icon: ChefHat,
-    },
-    {
-        title: 'Combos',
-        href: combos.index.url(),
-        icon: Gift,
-    },
-    {
-        title: 'Payment Methods',
-        href: paymentMethods.index.url(),
-        icon: CreditCard,
-    },
-    {
-        title: 'POS Terminals',
-        href: posTerminals.index.url(),
-        icon: Monitor,
-    },
-    {
-        title: 'Cash Registers',
-        href: cashRegisters.index.url(),
-        icon: Wallet,
-    },
-    {
-        title: 'Table Areas',
-        href: tableAreas.index.url(),
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Tables',
-        href: tables.index.url(),
-        icon: UtensilsCrossed,
-    },
-    {
-        title: 'Reservations',
-        href: reservations.index.url(),
-        icon: Calendar,
+        title: '⚙️ Configuración',
+        defaultOpen: false,
+        items: [
+            {
+                title: 'Empresas',
+                href: companies.index.url(),
+                icon: Building2,
+            },
+        ],
     },
 ];
 
@@ -162,7 +234,8 @@ const footerNavItems: NavItem[] = [
         </SidebarHeader>
 
         <SidebarContent>
-            <NavMain :items="mainNavItems" />
+            <NavMain :items="dashboardItems" />
+            <NavGroups :groups="navGroups" />
         </SidebarContent>
 
         <SidebarFooter>

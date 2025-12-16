@@ -44,10 +44,18 @@ interface OrderItem {
     notes: string;
 }
 
+interface Journal {
+    id: number;
+    code: string;
+    name: string;
+    type: string;
+}
+
 interface Props {
     branches: { data: any[] };
     warehouses: { data: any[] };
     taxes?: Tax[];
+    journals?: Journal[];
 }
 
 const props = defineProps<Props>();
@@ -81,7 +89,7 @@ const today = new Date().toISOString().split('T')[0];
 const defaultTaxId = computed(() => props.taxes && props.taxes.length > 0 ? props.taxes[0].id : null);
 
 const form = useForm({
-    order_number: '',
+    journal_id: null as number | null,
     branch_id: null as number | null,
     warehouse_id: null as number | null,
     partner_id: null as number | null,
@@ -208,13 +216,25 @@ const submit = () => {
                         <div class="border-b pb-4">
                             <h3 class="font-semibold text-lg mb-4">Order Information</h3>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <!-- Order Number -->
+                                <!-- Journal (Tipo de Comprobante) -->
                                 <div class="space-y-2">
-                                    <Label for="order_number">Order Number *</Label>
-                                    <Input id="order_number" v-model="form.order_number" required maxlength="20" placeholder="SO-2024-001" />
-                                    <div v-if="form.errors.order_number" class="text-red-500 text-sm">
-                                        {{ form.errors.order_number }}
+                                    <Label for="journal_id">Tipo de Comprobante *</Label>
+                                    <Select v-model="form.journal_id">
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Seleccionar comprobante" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem v-for="journal in journals" :key="journal.id" :value="journal.id">
+                                                {{ journal.code }} - {{ journal.name }}
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <div v-if="form.errors.journal_id" class="text-red-500 text-sm">
+                                        {{ form.errors.journal_id }}
                                     </div>
+                                    <p class="text-xs text-blue-600 mt-1">
+                                        📝 El número de orden se generará automáticamente al guardar
+                                    </p>
                                 </div>
 
                                 <!-- Customer -->

@@ -40,9 +40,11 @@ class StockTransferController extends Controller
     public function create()
     {
         $warehouses = Warehouse::active()->get();
+        $journals = \App\Models\Journal::where('type', 'transfer')->where('is_active', true)->get();
 
         return Inertia::render('StockTransfers/Create', [
             'warehouses' => \App\Http\Resources\WarehouseResource::collection($warehouses),
+            'journals' => $journals,
         ]);
     }
 
@@ -51,9 +53,9 @@ class StockTransferController extends Controller
      */
     public function store(Request $request)
     {
-        // ... validation unchanged ...
         $validated = $request->validate([
-            'transfer_number' => 'required|string|max:20|unique:stock_transfers,transfer_number',
+            // transfer_number se genera automáticamente basado en journal_id
+            'journal_id' => 'required|exists:journals,id',
             'from_warehouse_id' => 'required|exists:warehouses,id',
             'to_warehouse_id' => [
                 'required',
@@ -74,10 +76,15 @@ class StockTransferController extends Controller
             'items.*.notes' => 'nullable|string',
         ]);
 
-        DB::transaction(function () use ($validated) {
-            // Create stock transfer
+        // Generar transfer_number automáticamente usando SequenceService
+        $sequenceService = app(\App\Services\SequenceService::class);
+        $sequence = $sequenceService->getNextNumber($validated['journal_id']);
+
+        DB::transaction(function () use ($validated, $sequence) {
+            // Create stock transfer with auto-generated transfer_number
             $transfer = StockTransfer::create([
-                'transfer_number' => $validated['transfer_number'],
+                'transfer_number' => $sequence['full_number'], // e.g., "TRF-00000001"
+                'journal_id' => $validated['journal_id'],
                 'from_warehouse_id' => $validated['from_warehouse_id'],
                 'to_warehouse_id' => $validated['to_warehouse_id'],
                 'transfer_date' => $validated['transfer_date'],
@@ -164,7 +171,7 @@ class StockTransferController extends Controller
         $transfer = StockTransfer::findOrFail($id);
 
         $validated = $request->validate([
-            'transfer_number' => ['required', 'string', 'max:20', Rule::unique('stock_transfers')->ignore($transfer->id)],
+            // journal_id y transfer_number no se pueden editar después de creación
             'from_warehouse_id' => 'required|exists:warehouses,id',
             'to_warehouse_id' => [
                 'required',
@@ -188,9 +195,8 @@ class StockTransferController extends Controller
         DB::transaction(function () use ($transfer, $validated) {
             $originalStatus = $transfer->status;
 
-            // Update stock transfer
+            // Update stock transfer (transfer_number y journal_id no se modifican)
             $transfer->update([
-                'transfer_number' => $validated['transfer_number'],
                 'from_warehouse_id' => $validated['from_warehouse_id'],
                 'to_warehouse_id' => $validated['to_warehouse_id'],
                 'transfer_date' => $validated['transfer_date'],

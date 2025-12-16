@@ -13,15 +13,14 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            // Base data
             BranchManagementSeeder::class,
+            JournalSeeder::class,
             WarehouseSeeder::class,
             UnitSeeder::class,
             ProductCategoriesFullSeeder::class,
             TaxSeeder::class,
             PartnerSeeder::class,
 
-            // POS Infrastructure (must be before products)
             RolesAndPermissionsSeeder::class,
             PosUsersSeeder::class,
             PosTablesSeeder::class,
@@ -29,7 +28,9 @@ class DatabaseSeeder extends Seeder
             KitchenStationsSeeder::class, // Before MenuProductsSeeder
 
             // Products (after stations)
+            InventoryProductsSeeder::class,
             MenuProductsSeeder::class,
+            RecipeSeeder::class,
         ]);
 
         // Default admin user

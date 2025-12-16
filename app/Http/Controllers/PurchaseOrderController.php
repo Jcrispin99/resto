@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Facades\Kardex; // Import Facade
 use App\Http\Resources\PurchaseOrderResource;
 use App\Models\Company;
+use App\Models\Journal;
 use App\Models\PurchaseOrder;
 use App\Models\Warehouse;
 use Illuminate\Http\Request;
@@ -41,11 +42,13 @@ class PurchaseOrderController extends Controller
         $branches = Company::branches()->active()->get();
         $warehouses = Warehouse::active()->get();
         $taxes = \App\Models\Tax::active()->get();
+        $journals = Journal::where('type', 'purchase')->where('is_active', true)->get();
 
         return Inertia::render('PurchaseOrders/Create', [
             'branches' => \App\Http\Resources\CompanyResource::collection($branches),
             'warehouses' => \App\Http\Resources\WarehouseResource::collection($warehouses),
             'taxes' => $taxes,
+            'journals' => $journals,
         ]);
     }
 
@@ -55,7 +58,8 @@ class PurchaseOrderController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'order_number' => 'required|string|max:20|unique:purchase_orders,order_number',
+            // order_number se genera automáticamente basado en journal_id
+            'journal_id' => 'required|exists:journals,id',
             'branch_id' => 'required|exists:companies,id',
             'warehouse_id' => 'required|exists:warehouses,id',
             'partner_id' => 'required|exists:partners,id',
@@ -81,15 +85,20 @@ class PurchaseOrderController extends Controller
             'items.*.notes' => 'nullable|string',
         ]);
 
+        // Generar order_number automáticamente usando SequenceService
+        $sequenceService = app(\App\Services\SequenceService::class);
+        $sequence = $sequenceService->getNextNumber($validated['journal_id']);
+
         // Calculate totals
         $subtotal = collect($validated['items'])->sum('total');
         $tax = collect($validated['items'])->sum('tax_amount');
         $total = $subtotal;
 
-        DB::transaction(function () use ($validated, $subtotal, $tax, $total) {
-            // Create purchase order
+        DB::transaction(function () use ($validated, $subtotal, $tax, $total, $sequence) {
+            // Create purchase order with auto-generated order_number
             $order = PurchaseOrder::create([
-                'order_number' => $validated['order_number'],
+                'order_number' => $sequence['full_number'], // e.g., "OC-00000001"
+                'journal_id' => $validated['journal_id'],
                 'branch_id' => $validated['branch_id'],
                 'warehouse_id' => $validated['warehouse_id'],
                 'partner_id' => $validated['partner_id'],
@@ -145,15 +154,7 @@ class PurchaseOrderController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
-    {
-        $order = PurchaseOrder::with(['partner', 'warehouse', 'branch', 'productables.product.template'])
-            ->findOrFail($id);
-
-        return Inertia::render('PurchaseOrders/Show', [
-            'order' => new PurchaseOrderResource($order),
-        ]);
-    }
+    public function show(string $id) {}
 
     public function edit(string $id)
     {

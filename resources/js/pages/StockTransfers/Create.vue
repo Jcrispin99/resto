@@ -22,8 +22,16 @@ interface TransferItem {
     notes: string;
 }
 
+interface Journal {
+    id: number;
+    code: string;
+    name: string;
+    type: string;
+}
+
 interface Props {
     warehouses: { data: any[] };
+    journals?: Journal[];
 }
 
 const props = defineProps<Props>();
@@ -52,7 +60,7 @@ const statuses = [
 const today = new Date().toISOString().split('T')[0];
 
 const form = useForm({
-    transfer_number: '',
+    journal_id: null as number | null,
     from_warehouse_id: null as number | null,
     to_warehouse_id: null as number | null,
     transfer_date: today,
@@ -116,13 +124,25 @@ const submit = () => {
                         <div class="border-b pb-4">
                             <h3 class="font-semibold text-lg mb-4">Transfer Information</h3>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <!-- Transfer Number -->
+                                <!-- Journal (Serie) -->
                                 <div class="space-y-2">
-                                    <Label for="transfer_number">Transfer Number *</Label>
-                                    <Input id="transfer_number" v-model="form.transfer_number" required maxlength="20" placeholder="TR-2024-001" />
-                                    <div v-if="form.errors.transfer_number" class="text-red-500 text-sm">
-                                        {{ form.errors.transfer_number }}
+                                    <Label for="journal_id">Serie *</Label>
+                                    <Select v-model="form.journal_id">
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Seleccionar serie" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem v-for="journal in journals" :key="journal.id" :value="journal.id">
+                                                {{ journal.code }} - {{ journal.name }}
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <div v-if="form.errors.journal_id" class="text-red-500 text-sm">
+                                        {{ form.errors.journal_id }}
                                     </div>
+                                    <p class="text-xs text-blue-600 mt-1">
+                                        📝 El número de traslado se generará automáticamente al guardar
+                                    </p>
                                 </div>
 
                                 <!-- From Warehouse -->
